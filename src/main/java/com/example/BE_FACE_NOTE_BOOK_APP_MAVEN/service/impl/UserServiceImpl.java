@@ -6,6 +6,7 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.common.Constants;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.common.MessageResponse;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.dto.ListAvatarDefault;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.dto.UserDTO;
+import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.jwt.JWTService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.*;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.object.AvatarDefault;
@@ -16,7 +17,6 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.VerificationTokenRepos
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.FriendRelationService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
@@ -46,7 +46,7 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private FriendRelationService friendRelationService;
     @Autowired
-    private JwtService jwtService;
+    private JWTService jwtService;
     @Autowired
     private VerificationTokenRepository verificationTokenRepository;
     @Autowired
@@ -302,9 +302,11 @@ public class UserServiceImpl implements UserService {
         }
         if (!CollectionUtils.isEmpty(optionalList)) {
             for (int i = 0; i < optionalList.size(); i++) {
-                Long id = optionalList.get(i).get().getId();
-                userDTOList.stream().filter(item -> item.getId().equals(id)).findFirst()
-                        .ifPresent(user -> user.setPeopleSendRequestFriend(true));
+                if (optionalList.get(i).isPresent()) {
+                    Long id = optionalList.get(i).get().getId();
+                    userDTOList.stream().filter(item -> item.getId().equals(id)).findFirst()
+                            .ifPresent(user -> user.setPeopleSendRequestFriend(true));
+                }
             }
         }
         return userDTOList;
@@ -355,8 +357,7 @@ public class UserServiceImpl implements UserService {
         try {
             if (StringUtils.isEmpty(authorization)) return false;
             String tokenRequest = Common.formatToken(authorization);
-            if (!jwtService.validateJwtToken(tokenRequest)) return false;
-            String userName = jwtService.getUserNameFromJwtToken(tokenRequest);
+            String userName = jwtService.extractUsername(tokenRequest);
             Optional<VerificationToken> verificationToken = verificationTokenRepository.findByUserId(idUser);
             return verificationToken.filter(token -> tokenRequest.equals(token.getToken())
                     && !"no token".equals(token.getToken())
