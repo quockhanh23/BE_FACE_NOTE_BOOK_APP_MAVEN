@@ -11,8 +11,13 @@ import java.util.Optional;
 
 @Service
 public class LikePostServiceImpl implements LikePostService {
+
+    private final LikePostRepository likePostRepository;
+
     @Autowired
-    private LikePostRepository likePostRepository;
+    public LikePostServiceImpl(LikePostRepository likePostRepository) {
+        this.likePostRepository = likePostRepository;
+    }
 
     @Override
     public Optional<LikePost> findById(Long id) {

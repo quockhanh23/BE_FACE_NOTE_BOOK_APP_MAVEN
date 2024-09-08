@@ -15,10 +15,16 @@ import java.util.Optional;
 @Service
 public class CommentServiceImpl implements CommentService {
 
+    private final CommentRepository commentRepository;
+
+    private final ModelMapper modelMapper;
+
     @Autowired
-    private CommentRepository commentRepository;
-    @Autowired
-    private ModelMapper modelMapper;
+    public CommentServiceImpl(CommentRepository commentRepository,
+                              ModelMapper modelMapper) {
+        this.commentRepository = commentRepository;
+        this.modelMapper = modelMapper;
+    }
 
     @Override
     public Optional<Comment> findById(Long id) {

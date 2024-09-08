@@ -11,8 +11,12 @@ import java.util.List;
 @Service
 public class VerificationTokenServiceImpl implements VerificationTokenService {
 
+    private final VerificationTokenRepository verificationTokenRepository;
+
     @Autowired
-    private VerificationTokenRepository verificationTokenRepository;
+    public VerificationTokenServiceImpl(VerificationTokenRepository verificationTokenRepository) {
+        this.verificationTokenRepository = verificationTokenRepository;
+    }
 
     @Override
     public void save(VerificationToken token) {

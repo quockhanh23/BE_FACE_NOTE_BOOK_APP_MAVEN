@@ -9,9 +9,6 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.DisLikeCommentReposito
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.LikeCommentRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.PostRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.*;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +16,6 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -29,29 +25,52 @@ import java.util.stream.Collectors;
 
 @Service
 public class PostServiceImpl implements PostService {
-    @Autowired
-    private PostRepository postRepository;
-    @Autowired
-    private LikePostService likePostService;
-    @Autowired
-    private DisLikePostService disLikePostService;
-    @Autowired
-    private IconHeartService iconHeartService;
-    @Autowired
-    private CommentService commentService;
-    @Autowired
-    private AnswerCommentService answerCommentService;
-    @Autowired
-    private LikeCommentRepository likeCommentRepository;
-    @Autowired
-    DisLikeCommentRepository disLikeCommentRepository;
-    @Autowired
-    private AnswerCommentRepository answerCommentRepository;
-    @Autowired
-    private ModelMapper modelMapper;
 
-    @PersistenceContext
-    private EntityManager entityManager;
+    private final PostRepository postRepository;
+
+    private final LikePostService likePostService;
+
+    private final DisLikePostService disLikePostService;
+
+    private final IconHeartService iconHeartService;
+
+    private final CommentService commentService;
+
+    private final AnswerCommentService answerCommentService;
+
+    private final LikeCommentRepository likeCommentRepository;
+
+    private final DisLikeCommentRepository disLikeCommentRepository;
+
+    private final AnswerCommentRepository answerCommentRepository;
+
+    private final ModelMapper modelMapper;
+
+    @Autowired
+    public PostServiceImpl(PostRepository postRepository,
+                           LikePostService likePostService,
+                           DisLikePostService disLikePostService,
+                           IconHeartService iconHeartService,
+                           CommentService commentService,
+                           AnswerCommentService answerCommentService,
+                           LikeCommentRepository likeCommentRepository,
+                           DisLikeCommentRepository disLikeCommentRepository,
+                           AnswerCommentRepository answerCommentRepository,
+                           ModelMapper modelMapper) {
+        this.postRepository = postRepository;
+        this.likePostService = likePostService;
+        this.disLikePostService = disLikePostService;
+        this.iconHeartService = iconHeartService;
+        this.commentService = commentService;
+        this.answerCommentService = answerCommentService;
+        this.likeCommentRepository = likeCommentRepository;
+        this.disLikeCommentRepository = disLikeCommentRepository;
+        this.answerCommentRepository = answerCommentRepository;
+        this.modelMapper = modelMapper;
+    }
+
+//    @PersistenceContext
+//    private EntityManager entityManager;
 
     @Override
     @Cacheable(cacheNames = "findAllPost")
@@ -170,9 +189,9 @@ public class PostServiceImpl implements PostService {
         List<LikeComment> likeComments = likeCommentRepository.findAllByCommentIdIn(listIdComment);
         List<DisLikeComment> disLikeComments = disLikeCommentRepository.findAllByCommentIdIn(listIdComment);
         List<AnswerComment> answerCommentList = answerCommentService.findAllByCommentIdIn(listIdComment);
-        likeCommentRepository.deleteInBatch(likeComments);
-        disLikeCommentRepository.deleteInBatch(disLikeComments);
-        answerCommentRepository.deleteInBatch(answerCommentList);
+        likeCommentRepository.deleteAllInBatch(likeComments);
+        disLikeCommentRepository.deleteAllInBatch(disLikeComments);
+        answerCommentRepository.deleteAllInBatch(answerCommentList);
     }
 
 //    public List<Post2> getListLCReFile(String lcRef, String requestCode, Integer productType) {

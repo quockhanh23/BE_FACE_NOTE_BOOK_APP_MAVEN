@@ -11,8 +11,13 @@ import java.util.Optional;
 
 @Service
 public class LikeCommentServiceImpl implements LikeCommentService {
+
+    private final LikeCommentRepository likeCommentRepository;
+
     @Autowired
-    private LikeCommentRepository likeCommentRepository;
+    public LikeCommentServiceImpl(LikeCommentRepository likeCommentRepository) {
+        this.likeCommentRepository = likeCommentRepository;
+    }
 
     @Override
     public Optional<LikeComment> findById(Long id) {

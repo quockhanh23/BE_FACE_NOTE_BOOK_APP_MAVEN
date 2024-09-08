@@ -15,8 +15,13 @@ import java.util.Optional;
 
 @Service
 public class ImageServiceImpl implements ImageService {
+
+    private final ImageRepository imageRepository;
+
     @Autowired
-    private ImageRepository imageRepository;
+    public ImageServiceImpl(ImageRepository imageRepository) {
+        this.imageRepository = imageRepository;
+    }
 
     @Override
     public Optional<Image> findById(Long id) {

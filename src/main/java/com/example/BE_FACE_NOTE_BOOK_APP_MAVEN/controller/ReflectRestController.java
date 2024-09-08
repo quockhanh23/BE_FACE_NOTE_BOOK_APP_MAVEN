@@ -26,24 +26,45 @@ import java.util.Optional;
 @RequestMapping("/api/refs")
 @Slf4j
 public class ReflectRestController {
+
+    private final LikePostService likePostService;
+
+    private final DisLikePostService disLikePostService;
+
+    private final UserService userService;
+
+    private final PostService postService;
+
+    private final LikeCommentService likeCommentService;
+
+    private final DisLikeCommentService disLikeCommentService;
+
+    private final IconHeartService iconHeartService;
+
+    private final CommentService commentService;
+
+    private final NotificationService notificationService;
+
     @Autowired
-    private LikePostService likePostService;
-    @Autowired
-    private DisLikePostService disLikePostService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private PostService postService;
-    @Autowired
-    private LikeCommentService likeCommentService;
-    @Autowired
-    private DisLikeCommentService disLikeCommentService;
-    @Autowired
-    private IconHeartService iconHeartService;
-    @Autowired
-    private CommentService commentService;
-    @Autowired
-    private NotificationService notificationService;
+    public ReflectRestController(LikePostService likePostService,
+                                 DisLikePostService disLikePostService,
+                                 UserService userService,
+                                 PostService postService,
+                                 LikeCommentService likeCommentService,
+                                 DisLikeCommentService disLikeCommentService,
+                                 IconHeartService iconHeartService,
+                                 CommentService commentService,
+                                 NotificationService notificationService) {
+        this.likePostService = likePostService;
+        this.disLikePostService = disLikePostService;
+        this.userService = userService;
+        this.postService = postService;
+        this.likeCommentService = likeCommentService;
+        this.disLikeCommentService = disLikeCommentService;
+        this.iconHeartService = iconHeartService;
+        this.commentService = commentService;
+        this.notificationService = notificationService;
+    }
 
     // Xem like của post
     @GetMapping("/getAllLike")

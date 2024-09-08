@@ -10,8 +10,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class ImageGroupServiceImpl implements ImageGroupService {
 
+    private final ImageGroupRepository imageGroupRepository;
+
     @Autowired
-    private ImageGroupRepository imageGroupRepository;
+    public ImageGroupServiceImpl(ImageGroupRepository imageGroupRepository) {
+        this.imageGroupRepository = imageGroupRepository;
+    }
 
     @Override
     public ImageGroup createImageGroupDefault(String image, Long idTheGroup, Long idUserUpLoad) {

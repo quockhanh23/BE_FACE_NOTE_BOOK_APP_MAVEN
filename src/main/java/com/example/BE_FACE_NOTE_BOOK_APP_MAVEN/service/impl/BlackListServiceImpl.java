@@ -14,8 +14,12 @@ import java.util.Optional;
 @Service
 public class BlackListServiceImpl implements BlackListService {
 
+    private final BlackListRepository blackListRepository;
+
     @Autowired
-    private BlackListRepository blackListRepository;
+    public BlackListServiceImpl(BlackListRepository blackListRepository) {
+        this.blackListRepository = blackListRepository;
+    }
 
     @Override
     public void create(BlackList blackList) {

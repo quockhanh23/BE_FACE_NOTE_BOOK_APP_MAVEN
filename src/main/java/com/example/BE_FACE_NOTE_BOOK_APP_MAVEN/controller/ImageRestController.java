@@ -9,7 +9,6 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.ImageRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.ImageService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
@@ -25,12 +24,21 @@ import java.util.*;
 @RequestMapping("/api/images")
 @Slf4j
 public class ImageRestController {
+
+    private final ImageService imageService;
+
+    private final UserService userService;
+
+    private final ImageRepository imageRepository;
+
     @Autowired
-    private ImageService imageService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private ImageRepository imageRepository;
+    public ImageRestController(ImageService imageService,
+                               UserService userService,
+                               ImageRepository imageRepository) {
+        this.imageService = imageService;
+        this.userService = userService;
+        this.imageRepository = imageRepository;
+    }
 
     @GetMapping("/findAllImages")
     public ResponseEntity<?> findAllImages(@RequestParam Long idUser,

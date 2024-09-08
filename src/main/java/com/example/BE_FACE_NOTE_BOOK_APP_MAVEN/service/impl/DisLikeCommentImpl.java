@@ -12,8 +12,12 @@ import java.util.Optional;
 @Service
 public class DisLikeCommentImpl implements DisLikeCommentService {
 
+    private final DisLikeCommentRepository disLikeCommentRepository;
+
     @Autowired
-    private DisLikeCommentRepository disLikeCommentRepository;
+    public DisLikeCommentImpl(DisLikeCommentRepository disLikeCommentRepository) {
+        this.disLikeCommentRepository = disLikeCommentRepository;
+    }
 
     @Override
     public Optional<DisLikeComment> findById(Long id) {

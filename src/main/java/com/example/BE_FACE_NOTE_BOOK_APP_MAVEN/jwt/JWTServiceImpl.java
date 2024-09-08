@@ -16,8 +16,6 @@ import java.util.function.Function;
 @Service
 public class JWTServiceImpl implements JWTService {
 
-    private String jwtSecret = "4261656C64756E67535345345345345345345345345345345345345";
-
     @Override
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
@@ -29,7 +27,8 @@ public class JWTServiceImpl implements JWTService {
     }
 
     private Key getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(this.jwtSecret);
+        String jwtSecret = "4261656C64756E67535345345345345345345345345345345345345";
+        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 

@@ -33,14 +33,25 @@ import java.util.Optional;
 @RequestMapping("/api/news")
 @Slf4j
 public class ShortNewsRestController {
+
+    private final ShortNewsService shortNewsService;
+
+    private final UserService userService;
+
+    private final ModelMapper modelMapper;
+
+    private final ShortNewsRepository shortNewsRepository;
+
     @Autowired
-    private ShortNewsService shortNewsService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private ModelMapper modelMapper;
-    @Autowired
-    private ShortNewsRepository shortNewsRepository;
+    public ShortNewsRestController(ShortNewsService shortNewsService,
+                                   UserService userService,
+                                   ModelMapper modelMapper,
+                                   ShortNewsRepository shortNewsRepository) {
+        this.shortNewsService = shortNewsService;
+        this.userService = userService;
+        this.modelMapper = modelMapper;
+        this.shortNewsRepository = shortNewsRepository;
+    }
 
     // Lưu ngày mới
     @GetMapping("/newDay")

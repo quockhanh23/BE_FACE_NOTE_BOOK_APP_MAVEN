@@ -16,8 +16,13 @@ import java.util.Optional;
 
 @Service
 public class MessengerServiceImpl implements MessengerService {
+
+    private final MessengerRepository messengerRepository;
+
     @Autowired
-    private MessengerRepository messengerRepository;
+    public MessengerServiceImpl(MessengerRepository messengerRepository) {
+        this.messengerRepository = messengerRepository;
+    }
 
     @Override
     public Optional<Messenger> findById(Long id) {

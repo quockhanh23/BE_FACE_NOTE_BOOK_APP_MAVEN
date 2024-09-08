@@ -11,8 +11,13 @@ import java.util.Optional;
 
 @Service
 public class LifeEventsServiceImpl implements LifeEventsService {
+
+    private final LifeEventsRepository lifeEventsRepository;
+
     @Autowired
-    LifeEventsRepository lifeEventsRepository;
+    public LifeEventsServiceImpl(LifeEventsRepository lifeEventsRepository) {
+        this.lifeEventsRepository = lifeEventsRepository;
+    }
 
     @Override
     public Optional<LifeEvents> findById(Long id) {

@@ -29,20 +29,37 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/groups")
 @Slf4j
 public class GroupRestController {
+
+    private final GroupParticipantService groupParticipantService;
+
+    private final TheGroupService theGroupService;
+
+    private final GroupPostService groupPostService;
+
+    private final UserService userService;
+
+    private final ImageGroupService imageGroupService;
+
+    private final NotificationService notificationService;
+
+    private final GroupParticipantRepository groupParticipantRepository;
+
     @Autowired
-    private GroupParticipantService groupParticipantService;
-    @Autowired
-    private TheGroupService theGroupService;
-    @Autowired
-    private GroupPostService groupPostService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private ImageGroupService imageGroupService;
-    @Autowired
-    private NotificationService notificationService;
-    @Autowired
-    private GroupParticipantRepository groupParticipantRepository;
+    public GroupRestController(GroupParticipantService groupParticipantService,
+                               TheGroupService theGroupService,
+                               GroupPostService groupPostService,
+                               UserService userService,
+                               ImageGroupService imageGroupService,
+                               NotificationService notificationService,
+                               GroupParticipantRepository groupParticipantRepository) {
+        this.groupParticipantService = groupParticipantService;
+        this.theGroupService = theGroupService;
+        this.groupPostService = groupPostService;
+        this.userService = userService;
+        this.imageGroupService = imageGroupService;
+        this.notificationService = notificationService;
+        this.groupParticipantRepository = groupParticipantRepository;
+    }
 
     // Danh sách nhóm đã vào
     @GetMapping("/groupJoined")

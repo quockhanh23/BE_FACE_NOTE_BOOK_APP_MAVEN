@@ -24,10 +24,17 @@ import java.util.List;
 @RequestMapping("/api/notifications")
 @Slf4j
 public class NotificationController {
+
+    private final NotificationService notificationService;
+
+    private final ModelMapper modelMapper;
+
     @Autowired
-    private NotificationService notificationService;
-    @Autowired
-    private ModelMapper modelMapper;
+    public NotificationController(NotificationService notificationService,
+                                  ModelMapper modelMapper) {
+        this.notificationService = notificationService;
+        this.modelMapper = modelMapper;
+    }
 
     @GetMapping("/getAllNotificationByIdSenTo")
     public ResponseEntity<?> getAllNotificationByIdSenTo(@RequestParam Long idSenTo) {

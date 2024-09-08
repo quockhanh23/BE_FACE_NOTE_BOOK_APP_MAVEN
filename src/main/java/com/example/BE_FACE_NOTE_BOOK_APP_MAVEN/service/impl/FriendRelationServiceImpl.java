@@ -7,7 +7,6 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.FriendRelation;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.User;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.FriendRelationRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.FriendRelationService;
-
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
@@ -22,8 +21,13 @@ import java.util.stream.Collectors;
 
 @Service
 public class FriendRelationServiceImpl implements FriendRelationService {
+
+    private final FriendRelationRepository friendRelationRepository;
+
     @Autowired
-    private FriendRelationRepository friendRelationRepository;
+    public FriendRelationServiceImpl(FriendRelationRepository friendRelationRepository) {
+        this.friendRelationRepository = friendRelationRepository;
+    }
 
     @Override
     public Optional<FriendRelation> findById(Long id) {

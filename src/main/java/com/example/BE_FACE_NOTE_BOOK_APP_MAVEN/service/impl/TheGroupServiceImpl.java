@@ -12,8 +12,12 @@ import java.util.Optional;
 @Service
 public class TheGroupServiceImpl implements TheGroupService {
 
+    private final TheGroupRepository theGroupRepository;
+
     @Autowired
-    private TheGroupRepository theGroupRepository;
+    public TheGroupServiceImpl(TheGroupRepository theGroupRepository) {
+        this.theGroupRepository = theGroupRepository;
+    }
 
     @Override
     public Optional<TheGroup> findById(Long id) {

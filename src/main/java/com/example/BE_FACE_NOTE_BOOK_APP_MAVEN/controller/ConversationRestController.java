@@ -31,21 +31,35 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/conversations")
 @Slf4j
 public class ConversationRestController {
+
+    private final ConversationService conversationService;
+
+    private final MessengerService messengerService;
+
+    private final UserService userService;
+
+    private final ConversationDeleteTimeRepository conversationDeleteTimeRepository;
+
+    private final ModelMapper modelMapper;
+
+    private final NotificationService notificationService;
+
     @Autowired
-    private ConversationService conversationService;
-    @Autowired
-    private MessengerService messengerService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private ConversationDeleteTimeRepository conversationDeleteTimeRepository;
-    @Autowired
-    private ModelMapper modelMapper;
-    @Autowired
-    private NotificationService notificationService;
+    public ConversationRestController(ConversationService conversationService,
+                                      MessengerService messengerService,
+                                      UserService userService,
+                                      ConversationDeleteTimeRepository conversationDeleteTimeRepository,
+                                      ModelMapper modelMapper,
+                                      NotificationService notificationService) {
+        this.conversationService = conversationService;
+        this.messengerService = messengerService;
+        this.userService = userService;
+        this.conversationDeleteTimeRepository = conversationDeleteTimeRepository;
+        this.modelMapper = modelMapper;
+        this.notificationService = notificationService;
+    }
 
     //   messengers2.sort((p1, p2) -> p2.getCount() - p1.getCount());
-
     // Tạo cuộc trò truyện
     @GetMapping("/createConversation")
     public ResponseEntity<?> createConversation(@RequestParam Long idSender,

@@ -16,8 +16,12 @@ import java.util.List;
 @Service
 public class NotificationServiceImpl implements NotificationService {
 
+    private final NotificationRepository notificationRepository;
+
     @Autowired
-    private NotificationRepository notificationRepository;
+    public NotificationServiceImpl(NotificationRepository notificationRepository) {
+        this.notificationRepository = notificationRepository;
+    }
 
     @Override
     @CacheEvict(cacheNames = {"findAllByIdSendTo", "findAllByIdSendToNotSeen"}, allEntries = true)

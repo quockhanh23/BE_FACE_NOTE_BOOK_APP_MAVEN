@@ -11,8 +11,13 @@ import java.util.Optional;
 
 @Service
 public class ConversationServiceImpl implements ConversationService {
+
+    private final ConversationRepository conversationRepository;
+
     @Autowired
-    private ConversationRepository conversationRepository;
+    public ConversationServiceImpl(ConversationRepository conversationRepository) {
+        this.conversationRepository = conversationRepository;
+    }
 
     @Override
     public Optional<Conversation> findById(Long id) {

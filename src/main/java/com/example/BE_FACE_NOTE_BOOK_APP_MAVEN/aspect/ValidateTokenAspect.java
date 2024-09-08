@@ -23,11 +23,16 @@ import java.util.Objects;
 @Slf4j
 public class ValidateTokenAspect {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    final HttpServletRequest request;
 
     @Autowired
-    private HttpServletRequest request;
+    public ValidateTokenAspect(UserService userService,
+                               HttpServletRequest request) {
+        this.userService = userService;
+        this.request = request;
+    }
 
     private Map<String, Object> getMethodSignature(JoinPoint joinPoint) {
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();

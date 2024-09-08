@@ -15,8 +15,13 @@ import java.util.Optional;
 
 @Service
 public class GroupParticipantServiceImpl implements GroupParticipantService {
+
+    private final GroupParticipantRepository groupParticipantRepository;
+
     @Autowired
-    private GroupParticipantRepository groupParticipantRepository;
+    public GroupParticipantServiceImpl(GroupParticipantRepository groupParticipantRepository) {
+        this.groupParticipantRepository = groupParticipantRepository;
+    }
 
     @Override
     public Iterable<GroupParticipant> findAll() {

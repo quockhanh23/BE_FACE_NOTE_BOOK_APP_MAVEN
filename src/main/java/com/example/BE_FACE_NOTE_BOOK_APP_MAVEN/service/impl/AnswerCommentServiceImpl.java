@@ -13,8 +13,12 @@ import java.util.Optional;
 @Service
 public class AnswerCommentServiceImpl implements AnswerCommentService {
 
+    private final AnswerCommentRepository answerCommentRepository;
+
     @Autowired
-    private AnswerCommentRepository answerCommentRepository;
+    public AnswerCommentServiceImpl(AnswerCommentRepository answerCommentRepository) {
+        this.answerCommentRepository = answerCommentRepository;
+    }
 
     @Override
     public Optional<AnswerComment> findById(Long id) {

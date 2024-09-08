@@ -28,10 +28,17 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/blackLists")
 @Slf4j
 public class BlackListController {
+
+    private final BlackListService blackListService;
+
+    private final UserService userService;
+
     @Autowired
-    private BlackListService blackListService;
-    @Autowired
-    private UserService userService;
+    public BlackListController(BlackListService blackListService,
+                               UserService userService) {
+        this.blackListService = blackListService;
+        this.userService = userService;
+    }
 
     // Danh sách những người đã chặn
     @GetMapping("/listBlockedByUser")

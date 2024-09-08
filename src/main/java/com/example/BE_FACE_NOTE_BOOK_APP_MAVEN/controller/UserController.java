@@ -47,28 +47,53 @@ import java.util.*;
 @RequestMapping("/api")
 @Slf4j
 public class UserController {
+
+    private final AuthenticationManager authenticationManager;
+
+    private final VerificationTokenRepository verificationTokenRepository;
+
+    private final JWTService jwtService;
+
+    private final UserService userService;
+
+    private final RoleService roleService;
+
+    private final PasswordEncoder passwordEncoder;
+
+    private final LastUserLoginRepository lastUserLoginRepository;
+
+    private final ModelMapper modelMapper;
+
+    private final ImageService imageService;
+
+    private final EmailService emailService;
+
+    private final HttpServletRequest request;
+
     @Autowired
-    private AuthenticationManager authenticationManager;
-    @Autowired
-    private VerificationTokenRepository verificationTokenRepository;
-    @Autowired
-    private JWTService jwtService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private RoleService roleService;
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    @Autowired
-    private LastUserLoginRepository lastUserLoginRepository;
-    @Autowired
-    private ModelMapper modelMapper;
-    @Autowired
-    private ImageService imageService;
-    @Autowired
-    private EmailService emailService;
-    @Autowired
-    private HttpServletRequest request;
+    public UserController(AuthenticationManager authenticationManager,
+                          VerificationTokenRepository verificationTokenRepository,
+                          JWTService jwtService,
+                          UserService userService,
+                          RoleService roleService,
+                          PasswordEncoder passwordEncoder,
+                          LastUserLoginRepository lastUserLoginRepository,
+                          ModelMapper modelMapper,
+                          ImageService imageService,
+                          EmailService emailService,
+                          HttpServletRequest request) {
+        this.authenticationManager = authenticationManager;
+        this.verificationTokenRepository = verificationTokenRepository;
+        this.jwtService = jwtService;
+        this.userService = userService;
+        this.roleService = roleService;
+        this.passwordEncoder = passwordEncoder;
+        this.lastUserLoginRepository = lastUserLoginRepository;
+        this.modelMapper = modelMapper;
+        this.imageService = imageService;
+        this.emailService = emailService;
+        this.request = request;
+    }
 
     @GetMapping("/saveHistoryLogin")
     public ResponseEntity<?> saveHistoryLogin(@RequestParam Long idUserLogin) {

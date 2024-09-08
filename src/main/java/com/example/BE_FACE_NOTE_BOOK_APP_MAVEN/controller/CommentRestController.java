@@ -31,22 +31,41 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/comments")
 @Slf4j
 public class CommentRestController {
+
+    private final CommentService commentService;
+
+    private final UserService userService;
+
+    private final PostService postService;
+
+    private final LikeCommentService likeCommentService;
+
+    private final DisLikeCommentService disLikeCommentService;
+
+    private final AnswerCommentService answerCommentService;
+
+    private final NotificationService notificationService;
+
+    private final ModelMapper modelMapper;
+
     @Autowired
-    private CommentService commentService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private PostService postService;
-    @Autowired
-    private LikeCommentService likeCommentService;
-    @Autowired
-    private DisLikeCommentService disLikeCommentService;
-    @Autowired
-    private AnswerCommentService answerCommentService;
-    @Autowired
-    private NotificationService notificationService;
-    @Autowired
-    private ModelMapper modelMapper;
+    public CommentRestController(CommentService commentService,
+                                 UserService userService,
+                                 PostService postService,
+                                 LikeCommentService likeCommentService,
+                                 DisLikeCommentService disLikeCommentService,
+                                 AnswerCommentService answerCommentService,
+                                 NotificationService notificationService,
+                                 ModelMapper modelMapper) {
+        this.commentService = commentService;
+        this.userService = userService;
+        this.postService = postService;
+        this.likeCommentService = likeCommentService;
+        this.disLikeCommentService = disLikeCommentService;
+        this.answerCommentService = answerCommentService;
+        this.notificationService = notificationService;
+        this.modelMapper = modelMapper;
+    }
 
     @GetMapping("/allComment")
     public ResponseEntity<List<Comment>> allComment() {

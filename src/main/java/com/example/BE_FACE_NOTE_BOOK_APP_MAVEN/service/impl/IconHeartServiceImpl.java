@@ -12,8 +12,12 @@ import java.util.Optional;
 @Service
 public class IconHeartServiceImpl implements IconHeartService {
 
+    private final IconHeartRepository iconHeartRepository;
+
     @Autowired
-    private IconHeartRepository iconHeartRepository;
+    public IconHeartServiceImpl(IconHeartRepository iconHeartRepository) {
+        this.iconHeartRepository = iconHeartRepository;
+    }
 
     @Override
     public Optional<IconHeart> findById(Long id) {

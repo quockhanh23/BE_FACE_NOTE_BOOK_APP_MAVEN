@@ -16,8 +16,13 @@ import java.util.Optional;
 
 @Service
 public class ShortNewsServiceImpl implements ShortNewsService {
+
+    private final ShortNewsRepository shortNewsRepository;
+
     @Autowired
-    private ShortNewsRepository shortNewsRepository;
+    public ShortNewsServiceImpl(ShortNewsRepository shortNewsRepository) {
+        this.shortNewsRepository = shortNewsRepository;
+    }
 
     @Override
     public Iterable<ShortNews> findAll() {

@@ -29,14 +29,24 @@ import java.util.Optional;
 @Slf4j
 public class ReportViolationsController {
 
+    private final UserService userService;
+
+    private final PostService postService;
+
+    private final TheGroupService theGroupService;
+
+    private final ReportRepository reportRepository;
+
     @Autowired
-    private UserService userService;
-    @Autowired
-    private PostService postService;
-    @Autowired
-    private TheGroupService theGroupService;
-    @Autowired
-    private ReportRepository reportRepository;
+    public ReportViolationsController(UserService userService,
+                                      PostService postService,
+                                      TheGroupService theGroupService,
+                                      ReportRepository reportRepository) {
+        this.userService = userService;
+        this.postService = postService;
+        this.theGroupService = theGroupService;
+        this.reportRepository = reportRepository;
+    }
 
     @PostMapping("/createRepost")
     public ResponseEntity<?> createRepost(@RequestBody ReportViolations report,

@@ -11,8 +11,13 @@ import java.util.Optional;
 
 @Service
 public class GroupPostServiceImpl implements GroupPostService {
+
+    private final GroupPostRepository groupPostRepository;
+
     @Autowired
-    private GroupPostRepository groupPostRepository;
+    public GroupPostServiceImpl(GroupPostRepository groupPostRepository) {
+        this.groupPostRepository = groupPostRepository;
+    }
 
     @Override
     public Optional<GroupPost> findById(Long id) {

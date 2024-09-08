@@ -20,11 +20,16 @@ import java.util.Optional;
 @Service
 public class FollowWatchingServiceImpl implements FollowWatchingService {
 
-    @Autowired
-    private FollowWatchingRepository followWatchingRepository;
+    private final FollowWatchingRepository followWatchingRepository;
+
+    private final UserRepository userRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    public FollowWatchingServiceImpl(FollowWatchingRepository followWatchingRepository,
+                                     UserRepository userRepository) {
+        this.followWatchingRepository = followWatchingRepository;
+        this.userRepository = userRepository;
+    }
 
     @Override
     public void createFollow(Long idUserLogin, Long idUserWatching) {

@@ -20,10 +20,17 @@ import java.util.Objects;
 @RequestMapping("/api/follows")
 @Slf4j
 public class FollowWatchingController {
+
+    private final UserService userService;
+
+    private final FollowWatchingService followWatchingService;
+
     @Autowired
-    private UserService userService;
-    @Autowired
-    private FollowWatchingService followWatchingService;
+    public FollowWatchingController(UserService userService,
+                                    FollowWatchingService followWatchingService) {
+        this.userService = userService;
+        this.followWatchingService = followWatchingService;
+    }
 
     @GetMapping("/getListFollowByIdUser")
     public ResponseEntity<?> getListFollowByIdUser(@RequestParam Long idUser) {

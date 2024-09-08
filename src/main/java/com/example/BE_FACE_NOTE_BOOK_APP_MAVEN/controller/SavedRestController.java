@@ -30,14 +30,25 @@ import java.util.Optional;
 @RequestMapping("/api/saves")
 @Slf4j
 public class SavedRestController {
+
+    private final SavedRepository savedRepository;
+
+    private final GroupPostService groupPostService;
+
+    private final UserService userService;
+
+    private final PostService postService;
+
     @Autowired
-    private SavedRepository savedRepository;
-    @Autowired
-    private GroupPostService groupPostService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private PostService postService;
+    public SavedRestController(SavedRepository savedRepository,
+                               GroupPostService groupPostService,
+                               UserService userService,
+                               PostService postService) {
+        this.savedRepository = savedRepository;
+        this.groupPostService = groupPostService;
+        this.userService = userService;
+        this.postService = postService;
+    }
 
     // Danh sách đã lưu
     @GetMapping("/listSavedPost")

@@ -28,10 +28,16 @@ import java.util.Optional;
 @RequestMapping("/api/events")
 @Slf4j
 public class LifeEventsRestController {
+
+    private final LifeEventsService lifeEventsService;
+
+    private final UserService userService;
     @Autowired
-    private LifeEventsService lifeEventsService;
-    @Autowired
-    private UserService userService;
+    public LifeEventsRestController(LifeEventsService lifeEventsService,
+                                    UserService userService) {
+        this.lifeEventsService = lifeEventsService;
+        this.userService = userService;
+    }
 
     @GetMapping("/getOne")
     public ResponseEntity<?> getOne(@RequestParam Long idUser, @RequestParam Long idEvent) {

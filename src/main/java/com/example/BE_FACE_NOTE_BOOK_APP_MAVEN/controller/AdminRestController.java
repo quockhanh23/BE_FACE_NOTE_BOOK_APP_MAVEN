@@ -13,6 +13,7 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.ReportRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.TheGroupRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.PostService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,17 +33,30 @@ import java.util.Optional;
 @CrossOrigin("*")
 @RequestMapping("/api/admins")
 @Slf4j
+
 public class AdminRestController {
+
+    private final UserService userService;
+
+    private final PostService postService;
+
+    private final TheGroupRepository theGroupRepository;
+
+    private final GroupPostRepository groupPostRepository;
+
+    private final ReportRepository reportRepository;
+
     @Autowired
-    private UserService userService;
-    @Autowired
-    private PostService postService;
-    @Autowired
-    private TheGroupRepository theGroupRepository;
-    @Autowired
-    private GroupPostRepository groupPostRepository;
-    @Autowired
-    private ReportRepository reportRepository;
+    public AdminRestController(UserService userService, PostService postService,
+                               TheGroupRepository theGroupRepository,
+                               GroupPostRepository groupPostRepository,
+                               ReportRepository reportRepository) {
+        this.userService = userService;
+        this.postService = postService;
+        this.theGroupRepository = theGroupRepository;
+        this.groupPostRepository = groupPostRepository;
+        this.reportRepository = reportRepository;
+    }
 
     // Xem tất cả user
     @GetMapping("/adminAction")

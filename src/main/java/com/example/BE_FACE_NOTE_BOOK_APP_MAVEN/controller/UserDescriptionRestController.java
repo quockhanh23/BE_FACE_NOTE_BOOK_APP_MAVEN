@@ -26,10 +26,17 @@ import java.util.Optional;
 @RequestMapping("/api/descriptions")
 @Slf4j
 public class UserDescriptionRestController {
+
+    private final UserDescriptionService userDescriptionService;
+
+    private final UserService userService;
+
     @Autowired
-    private UserDescriptionService userDescriptionService;
-    @Autowired
-    private UserService userService;
+    public UserDescriptionRestController(UserDescriptionService userDescriptionService,
+                                         UserService userService) {
+        this.userDescriptionService = userDescriptionService;
+        this.userService = userService;
+    }
 
     @GetMapping("/getDescriptionByIdUser")
     public ResponseEntity<?> getDescriptionByIdUser(@RequestParam Long idUser) {

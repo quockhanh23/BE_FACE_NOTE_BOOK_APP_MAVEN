@@ -11,8 +11,12 @@ import java.util.Optional;
 @Service
 public class UserComplaintsServiceImpl implements UserComplaintsService {
 
+    private final UserComplaintsRepository userComplaintsRepository;
+
     @Autowired
-    private UserComplaintsRepository userComplaintsRepository;
+    public UserComplaintsServiceImpl(UserComplaintsRepository userComplaintsRepository) {
+        this.userComplaintsRepository = userComplaintsRepository;
+    }
 
     @Override
     public Optional<UserComplaints> findById(Long id) {

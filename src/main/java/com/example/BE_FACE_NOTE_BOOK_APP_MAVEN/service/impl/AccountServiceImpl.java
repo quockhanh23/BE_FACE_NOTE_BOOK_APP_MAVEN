@@ -14,8 +14,12 @@ import java.util.Optional;
 //@Scope(value = "singleton")
 public class AccountServiceImpl implements GeneralService<User> {
 
+    private final UserRepository userRepository;
+
     @Autowired
-    private UserRepository userRepository;
+    public AccountServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     public Optional<User> findById(Long id) {

@@ -34,16 +34,29 @@ import java.util.Optional;
 @RequestMapping("/api/answerComments")
 @Slf4j
 public class AnswerCommentRestController {
+
+    private final UserService userService;
+
+    private final CommentService commentService;
+
+    private final AnswerCommentService answerCommentService;
+
+    private final NotificationService notificationService;
+
+    private final ModelMapper modelMapper;
+
     @Autowired
-    private UserService userService;
-    @Autowired
-    private CommentService commentService;
-    @Autowired
-    private AnswerCommentService answerCommentService;
-    @Autowired
-    private NotificationService notificationService;
-    @Autowired
-    private ModelMapper modelMapper;
+    public AnswerCommentRestController(UserService userService,
+                                       CommentService commentService,
+                                       AnswerCommentService answerCommentService,
+                                       NotificationService notificationService,
+                                       ModelMapper modelMapper) {
+        this.userService = userService;
+        this.commentService = commentService;
+        this.answerCommentService = answerCommentService;
+        this.notificationService = notificationService;
+        this.modelMapper = modelMapper;
+    }
 
     @GetMapping("/allAnswerComment")
     public ResponseEntity<?> allAnswerComment() {

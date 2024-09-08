@@ -14,11 +14,15 @@ import java.util.Optional;
 @Service
 public class UserDescriptionServiceImpl implements UserDescriptionService {
 
+    private final UserDescriptionRepository userDescriptionRepository;
+
     @Autowired
-    private UserDescriptionRepository userDescriptionRepository;
+    public UserDescriptionServiceImpl(UserDescriptionRepository userDescriptionRepository) {
+        this.userDescriptionRepository = userDescriptionRepository;
+    }
 
     @Override
-    @Cacheable(cacheNames = "findAllByUserId", key = "#idUser")
+    @Cacheable(cacheNames = "findAllByUserId", key = "#user_id")
     public List<UserDescription> findAllByUserId(Long user_id) {
         return userDescriptionRepository.findAllByUserIdOrderByCreateAtDesc(user_id);
     }

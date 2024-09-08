@@ -34,32 +34,61 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/posts")
 @Slf4j
 public class PostRestController {
+
+    private final PostService postService;
+
+    private final UserService userService;
+
+    private final LikePostService likePostService;
+
+    private final DisLikePostService disLikePostService;
+
+    private final IconHeartService iconHeartService;
+
+    private final ModelMapper modelMapper;
+
+    private final ImageService imageService;
+
+    private final HidePostRepository hidePostRepository;
+
+    private final CommentRepository commentRepository;
+
+    private final LikePostRepository likePostRepository;
+
+    private final DisLikePostRepository disLikePostRepository;
+
+    private final IconHeartRepository iconHeartRepository;
+
+    private final PostRepository postRepository;
+
     @Autowired
-    private PostService postService;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private LikePostService likePostService;
-    @Autowired
-    private DisLikePostService disLikePostService;
-    @Autowired
-    private IconHeartService iconHeartService;
-    @Autowired
-    private ModelMapper modelMapper;
-    @Autowired
-    private ImageService imageService;
-    @Autowired
-    private HidePostRepository hidePostRepository;
-    @Autowired
-    private CommentRepository commentRepository;
-    @Autowired
-    private LikePostRepository likePostRepository;
-    @Autowired
-    private DisLikePostRepository disLikePostRepository;
-    @Autowired
-    private IconHeartRepository iconHeartRepository;
-    @Autowired
-    private PostRepository postRepository;
+    public PostRestController(PostService postService,
+                              UserService userService,
+                              LikePostService likePostService,
+                              DisLikePostService disLikePostService,
+                              IconHeartService iconHeartService,
+                              ModelMapper modelMapper,
+                              ImageService imageService,
+                              HidePostRepository hidePostRepository,
+                              CommentRepository commentRepository,
+                              LikePostRepository likePostRepository,
+                              DisLikePostRepository disLikePostRepository,
+                              IconHeartRepository iconHeartRepository,
+                              PostRepository postRepository) {
+        this.postService = postService;
+        this.userService = userService;
+        this.likePostService = likePostService;
+        this.disLikePostService = disLikePostService;
+        this.iconHeartService = iconHeartService;
+        this.modelMapper = modelMapper;
+        this.imageService = imageService;
+        this.hidePostRepository = hidePostRepository;
+        this.commentRepository = commentRepository;
+        this.likePostRepository = likePostRepository;
+        this.disLikePostRepository = disLikePostRepository;
+        this.iconHeartRepository = iconHeartRepository;
+        this.postRepository = postRepository;
+    }
 
     @GetMapping("/allPostPublic")
     public ResponseEntity<?> allPostPublic(@RequestParam Long idUser,

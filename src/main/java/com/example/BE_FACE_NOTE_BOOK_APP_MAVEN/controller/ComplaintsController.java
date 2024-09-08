@@ -18,8 +18,12 @@ import java.util.Date;
 @Slf4j
 public class ComplaintsController {
 
+    private final UserComplaintsService userComplaintsService;
+
     @Autowired
-    private UserComplaintsService userComplaintsService;
+    public ComplaintsController(UserComplaintsService userComplaintsService) {
+        this.userComplaintsService = userComplaintsService;
+    }
 
     @GetMapping("/getAllByUserId")
     public ResponseEntity<?> getAllByUserId(@RequestParam Long idUser) {

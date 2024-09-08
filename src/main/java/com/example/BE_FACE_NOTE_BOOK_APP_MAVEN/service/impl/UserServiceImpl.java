@@ -37,20 +37,37 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class UserServiceImpl implements UserService {
+
+    private final UserRepository userRepository;
+
+    private final FollowWatchingRepository followWatchingRepository;
+
+    private final ModelMapper modelMapper;
+
+    private final FriendRelationService friendRelationService;
+
+    private final JWTService jwtService;
+
+    private final VerificationTokenRepository verificationTokenRepository;
+
+    private final LastUserLoginRepository lastUserLoginRepository;
+
     @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private FollowWatchingRepository followWatchingRepository;
-    @Autowired
-    private ModelMapper modelMapper;
-    @Autowired
-    private FriendRelationService friendRelationService;
-    @Autowired
-    private JWTService jwtService;
-    @Autowired
-    private VerificationTokenRepository verificationTokenRepository;
-    @Autowired
-    private LastUserLoginRepository lastUserLoginRepository;
+    public UserServiceImpl(UserRepository userRepository,
+                           FollowWatchingRepository followWatchingRepository,
+                           ModelMapper modelMapper,
+                           FriendRelationService friendRelationService,
+                           JWTService jwtService,
+                           VerificationTokenRepository verificationTokenRepository,
+                           LastUserLoginRepository lastUserLoginRepository) {
+        this.userRepository = userRepository;
+        this.followWatchingRepository = followWatchingRepository;
+        this.modelMapper = modelMapper;
+        this.friendRelationService = friendRelationService;
+        this.jwtService = jwtService;
+        this.verificationTokenRepository = verificationTokenRepository;
+        this.lastUserLoginRepository = lastUserLoginRepository;
+    }
 
     @Override
     @Transactional
@@ -209,8 +226,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Cacheable(cacheNames = "findAllByIdIn",
-            key = "#root.methodName + '_' + T(com.example.utils.CacheKeyGenerator).generateKey(#inputList)")
+    @Cacheable(cacheNames = "findAllByIdIn", key = "#inputList")
     public Set<User> findAllByIdIn(Set<Long> inputList) {
         return userRepository.findAllByIdIn(inputList);
     }
