@@ -5,7 +5,6 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.common.Constants;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.common.MessageResponse;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.exeption.TokenInvalidException;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
@@ -25,13 +24,9 @@ public class ValidateTokenAspect {
 
     private final UserService userService;
 
-    final HttpServletRequest request;
-
     @Autowired
-    public ValidateTokenAspect(UserService userService,
-                               HttpServletRequest request) {
+    public ValidateTokenAspect(UserService userService) {
         this.userService = userService;
-        this.request = request;
     }
 
     private Map<String, Object> getMethodSignature(JoinPoint joinPoint) {
@@ -62,21 +57,21 @@ public class ValidateTokenAspect {
     @Before("execution(* com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.controller.AdminRestController.*(..))")
     public void beforeAdminRestControllerMethods(JoinPoint joinPoint) {
         log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Start Checking Token AdminRestController Methods");
-        parameterIdAndAuthorization(joinPoint, "idAdmin");
+        parameterIdAndAuthorization(joinPoint, Constants.IdCheck.ID_ADMIN);
         log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>End Checking Token AdminRestController Methods");
     }
 
     @Before("execution(* com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.controller.UserController.*(..)) && !execution(* com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.controller.UserController.passwordRetrieval(..))")
     public void beforeUserControllerMethods(JoinPoint joinPoint) {
         log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Start Checking Token UserController Methods");
-        parameterIdAndAuthorization(joinPoint, "idUser");
+        parameterIdAndAuthorization(joinPoint, Constants.IdCheck.ID_USER);
         log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>End Checking Token UserController Methods");
     }
 
     @Before("execution(* com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.controller.ImageRestController.*(..)) && !execution(* com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.controller.ImageRestController.findAllImages(..))")
     public void beforeImageRestControllerMethods(JoinPoint joinPoint) {
         log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Start Checking Token ImageRestController Methods");
-        parameterIdAndAuthorization(joinPoint, "idUser");
+        parameterIdAndAuthorization(joinPoint, Constants.IdCheck.ID_USER);
         log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>End Checking Token ImageRestController Methods");
     }
 
@@ -85,14 +80,14 @@ public class ValidateTokenAspect {
             "&& !execution(* com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.controller.PostRestController.findOnePostById(..))")
     public void beforePostRestControllerMethods(JoinPoint joinPoint) {
         log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Start Checking Token PostRestController Methods");
-        parameterIdAndAuthorization(joinPoint, "idUser");
+        parameterIdAndAuthorization(joinPoint, Constants.IdCheck.ID_USER);
         log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>End Checking Token PostRestController Methods");
     }
 
     @Before("execution(* com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.controller.AnswerCommentRestController.*(..))")
     public void beforeAnswerCommentRestControllerMethods(JoinPoint joinPoint) {
         log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Start Checking Token AnswerCommentRestController Methods");
-        parameterIdAndAuthorization(joinPoint, "idUser");
+        parameterIdAndAuthorization(joinPoint, Constants.IdCheck.ID_USER);
         log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>End Checking Token AnswerCommentRestController Methods");
     }
 }
