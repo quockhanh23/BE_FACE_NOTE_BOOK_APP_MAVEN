@@ -13,7 +13,6 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.ReportRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.TheGroupRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.PostService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +32,6 @@ import java.util.Optional;
 @CrossOrigin("*")
 @RequestMapping("/api/admins")
 @Slf4j
-
 public class AdminRestController {
 
     private final UserService userService;
