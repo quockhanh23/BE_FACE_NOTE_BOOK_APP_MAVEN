@@ -57,7 +57,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public void create(Comment comment) {
+    public void createDefault(Comment comment) {
         comment.setNumberLike(0L);
         comment.setNumberDisLike(0L);
         comment.setCreateAt(LocalDateTime.now());

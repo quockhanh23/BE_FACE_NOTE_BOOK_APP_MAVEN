@@ -8,7 +8,6 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.LifeEventsService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
@@ -32,6 +31,7 @@ public class LifeEventsRestController {
     private final LifeEventsService lifeEventsService;
 
     private final UserService userService;
+
     @Autowired
     public LifeEventsRestController(LifeEventsService lifeEventsService,
                                     UserService userService) {
@@ -40,12 +40,8 @@ public class LifeEventsRestController {
     }
 
     @GetMapping("/getOne")
-    public ResponseEntity<?> getOne(@RequestParam Long idUser, @RequestParam Long idEvent) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> getOne(@RequestParam Long idUser, @RequestParam Long idEvent) {
+        userService.checkExistUser(idUser);
         Optional<LifeEvents> lifeEvents = lifeEventsService.findById(idEvent);
         if (lifeEvents.isEmpty()) {
             return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_EVENT, idEvent),
@@ -56,7 +52,7 @@ public class LifeEventsRestController {
 
     // Tạo sự kiện
     @PostMapping("/createLifeEvents")
-    public ResponseEntity<?> createLifeEvents(@RequestParam Long idUser, @RequestBody LifeEvents lifeEvents) {
+    public ResponseEntity<Object> createLifeEvents(@RequestParam Long idUser, @RequestBody LifeEvents lifeEvents) {
         if (lifeEvents.getTimeline() == null) {
             return new ResponseEntity<>(ResponseNotification.responseMessageDataField("Timeline"), HttpStatus.BAD_REQUEST);
         }
@@ -64,13 +60,9 @@ public class LifeEventsRestController {
             return new ResponseEntity<>(ResponseNotification.responseMessageDataField("work"), HttpStatus.BAD_REQUEST);
         }
         Common.handlerWordsLanguage(lifeEvents);
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         lifeEvents.setCreateAt(new Date());
-        lifeEvents.setUser(userOptional.get());
+        lifeEvents.setUser(user);
         lifeEvents.setStatus(Constants.STATUS_PUBLIC);
         if (StringUtils.isEmpty(lifeEvents.getWork())) {
             return new ResponseEntity<>(ResponseNotification.responseMessageDataField(Constants.DataField.WORK),
@@ -82,20 +74,16 @@ public class LifeEventsRestController {
 
     // Sửa sự kiện
     @PutMapping("/update")
-    public ResponseEntity<?> updateLifeEvents(@RequestParam Long idUser,
-                                              @RequestParam Long idEvent,
-                                              @RequestBody LifeEvents lifeEvents) {
+    public ResponseEntity<Object> updateLifeEvents(@RequestParam Long idUser,
+                                                   @RequestParam Long idEvent,
+                                                   @RequestBody LifeEvents lifeEvents) {
         try {
             Optional<LifeEvents> lifeEventsOptional = lifeEventsService.findById(idEvent);
             if (lifeEventsOptional.isEmpty()) {
                 return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_EVENT, idEvent),
                         HttpStatus.NOT_FOUND);
             }
-            Optional<User> userOptional = userService.findById(idUser);
-            if (userOptional.isEmpty()) {
-                return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                        HttpStatus.NOT_FOUND);
-            }
+            userService.checkExistUser(idUser);
             Common.handlerWordsLanguage(lifeEvents);
             if (lifeEvents.getWork() != null) {
                 lifeEventsOptional.get().setWork(lifeEvents.getWork());
@@ -114,20 +102,15 @@ public class LifeEventsRestController {
         }
     }
 
-    // Xóa sự kiện
     @DeleteMapping("/delete")
-    public ResponseEntity<?> deleteLifeEvents(@RequestParam Long idUser, @RequestParam Long idEvent) {
+    public ResponseEntity<Object> deleteLifeEvents(@RequestParam Long idUser, @RequestParam Long idEvent) {
         try {
             Optional<LifeEvents> lifeEventsOptional = lifeEventsService.findById(idEvent);
             if (lifeEventsOptional.isEmpty()) {
                 return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_EVENT, idEvent),
                         HttpStatus.NOT_FOUND);
             }
-            Optional<User> userOptional = userService.findById(idUser);
-            if (userOptional.isEmpty()) {
-                return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                        HttpStatus.NOT_FOUND);
-            }
+            userService.checkExistUser(idUser);
             lifeEventsService.delete(lifeEventsOptional.get());
         } catch (Exception e) {
             e.printStackTrace();
@@ -137,12 +120,8 @@ public class LifeEventsRestController {
     }
 
     @GetMapping("/findListByIdUser")
-    public ResponseEntity<?> findListByIdUser(@RequestParam Long idUser) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> findListByIdUser(@RequestParam Long idUser) {
+        userService.checkExistUser(idUser);
         List<LifeEvents> list = lifeEventsService.findLifeEventsByUserId(idUser);
         if (CollectionUtils.isEmpty(list)) {
             list = new ArrayList<>();

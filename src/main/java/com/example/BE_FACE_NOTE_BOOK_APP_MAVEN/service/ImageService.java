@@ -12,7 +12,7 @@ public interface ImageService extends GeneralService<Image> {
 
     List<Image> findAllImageByIdUser(@Param("idUser") Long idUser);
 
-    Image createImageDefault(String image, User user);
+    Image createImageDefault(String imageUrl, User user);
 
     List<Image> findAllImageDeletedByUserId(@Param("idUser") Long idUser);
 }

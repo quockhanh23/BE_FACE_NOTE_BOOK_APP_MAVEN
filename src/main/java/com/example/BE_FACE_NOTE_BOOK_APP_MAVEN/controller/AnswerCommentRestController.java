@@ -59,7 +59,7 @@ public class AnswerCommentRestController {
     }
 
     @GetMapping("/allAnswerComment")
-    public ResponseEntity<?> allAnswerComment() {
+    public ResponseEntity<Object> allAnswerComment() {
         List<AnswerComment> answerCommentList = answerCommentService.findAllByDeleteAtIsNull();
         if (CollectionUtils.isEmpty(answerCommentList)) {
             answerCommentList = new ArrayList<>();
@@ -68,7 +68,7 @@ public class AnswerCommentRestController {
     }
 
     @GetMapping("/allAnswerCommentByIdComment")
-    public ResponseEntity<?> allAnswerCommentByIdComment(@RequestParam Long idComment) {
+    public ResponseEntity<Object> allAnswerCommentByIdComment(@RequestParam Long idComment) {
         List<AnswerComment> answerCommentList = answerCommentService.findAllByCommentIdAndDeleteAtIsNull(idComment);
         if (CollectionUtils.isEmpty(answerCommentList)) {
             answerCommentList = new ArrayList<>();
@@ -76,31 +76,26 @@ public class AnswerCommentRestController {
         return new ResponseEntity<>(answerCommentList, HttpStatus.OK);
     }
 
-    // Tạo mới AnswerComment
     @PostMapping("/createAnswerComment")
-    public ResponseEntity<?> createAnswerComment(@RequestBody AnswerComment answerComment,
-                                                 @RequestParam Long idUser,
-                                                 @RequestParam Long idComment,
-                                                 @SuppressWarnings("unused")
-                                                 @RequestHeader("Authorization") String authorization) {
+    public ResponseEntity<Object> createAnswerComment(@RequestBody AnswerComment answerComment,
+                                                      @RequestParam Long idUser,
+                                                      @RequestParam Long idComment,
+                                                      @SuppressWarnings("unused")
+                                                      @RequestHeader("Authorization") String authorization) {
         if (StringUtils.isEmpty(answerComment.getContent().trim())) {
             return new ResponseEntity<>(ResponseNotification.responseMessageDataField(Constants.DataField.CONTENT),
                     HttpStatus.BAD_REQUEST);
         }
         Common.handlerWordsLanguage(answerComment);
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         Optional<Comment> commentOptional = commentService.findById(idComment);
         if (commentOptional.isEmpty()) {
             return new ResponseEntity<>(ResponseNotification.
                     responseMessage(Constants.IdCheck.ID_COMMENT, idComment), HttpStatus.NOT_FOUND);
         }
-        answerCommentService.create(answerComment);
+        answerCommentService.createDefault(answerComment);
         answerComment.setComment(commentOptional.get());
-        answerComment.setUser(userOptional.get());
+        answerComment.setUser(user);
         answerCommentService.save(answerComment);
 
         AnswerCommentDTO answerCommentDTO = modelMapper.map(answerComment, AnswerCommentDTO.class);
@@ -110,24 +105,19 @@ public class AnswerCommentRestController {
             String title = Constants.Notification.TITLE_ANSWER_COMMENT;
             String type = Constants.Notification.TYPE_ANSWER_COMMENT;
             Notification notification = notificationService.
-                    createDefault(commentOptional.get().getUser(), userOptional.get(), title, idComment, type);
+                    createDefault(commentOptional.get().getUser(), user, title, idComment, type);
             notificationService.save(notification);
         }
         return new ResponseEntity<>(answerCommentDTO, HttpStatus.OK);
     }
 
-    // Xóa AnswerComment
     @DeleteMapping("/deleteAnswerComment")
-    public ResponseEntity<?> deleteAnswerComment(@RequestParam Long idUser,
-                                                 @RequestParam Long idComment,
-                                                 @RequestParam Long idAnswerComment,
-                                                 @SuppressWarnings("unused")
-                                                 @RequestHeader("Authorization") String authorization) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> deleteAnswerComment(@RequestParam Long idUser,
+                                                      @RequestParam Long idComment,
+                                                      @RequestParam Long idAnswerComment,
+                                                      @SuppressWarnings("unused")
+                                                      @RequestHeader("Authorization") String authorization) {
+        User user = userService.checkExistUser(idUser);
         Optional<Comment> commentOptional = commentService.findById(idComment);
         if (commentOptional.isEmpty()) {
             return new ResponseEntity<>(ResponseNotification.
@@ -138,14 +128,14 @@ public class AnswerCommentRestController {
             return new ResponseEntity<>(ResponseNotification.
                     responseMessage(Constants.IdCheck.ID_ANSWER_COMMENT, idAnswerComment), HttpStatus.NOT_FOUND);
         }
-        if ((userOptional.get().getId().equals(answerComment.get().getUser().getId())) ||
-                (userOptional.get().getId().equals(answerComment.get().getComment().getUser().getId()))) {
+        if ((user.getId().equals(answerComment.get().getUser().getId())) ||
+                (user.getId().equals(answerComment.get().getComment().getUser().getId()))) {
             answerComment.get().setDeleteAt(LocalDateTime.now());
             answerComment.get().setDelete(true);
             answerCommentService.save(answerComment.get());
             return new ResponseEntity<>(answerComment.get(), HttpStatus.OK);
         }
-        if ((userOptional.get().getId().equals(answerComment.get().getComment().getPost().getUser().getId()))) {
+        if ((user.getId().equals(answerComment.get().getComment().getPost().getUser().getId()))) {
             answerComment.get().setDeleteAt(LocalDateTime.now());
             answerComment.get().setDelete(true);
             answerCommentService.save(answerComment.get());

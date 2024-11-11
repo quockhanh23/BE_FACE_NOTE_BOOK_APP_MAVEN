@@ -12,9 +12,7 @@ import java.util.Date;
 public class ShortNewsDTO {
     private Long id;
     private String content;
-    private Date createAt;
-    private int expired;
-    private int remaining;
+    private Date createdAt;
     private String image;
     private String status;
     private UserDTO userDTO;

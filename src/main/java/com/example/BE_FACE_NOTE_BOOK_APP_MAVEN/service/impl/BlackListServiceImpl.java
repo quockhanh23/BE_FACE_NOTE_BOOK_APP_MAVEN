@@ -22,7 +22,7 @@ public class BlackListServiceImpl implements BlackListService {
     }
 
     @Override
-    public void create(BlackList blackList) {
+    public void saveToBlackList(BlackList blackList) {
         blackListRepository.save(blackList);
     }
 

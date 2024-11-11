@@ -49,31 +49,19 @@ public class ReportViolationsController {
     }
 
     @PostMapping("/createRepost")
-    public ResponseEntity<?> createRepost(@RequestBody ReportViolations report,
-                                          @RequestParam Long idUserRepost,
-                                          @RequestParam Long idViolate,
-                                          @RequestParam String type) {
-        Optional<User> userRepost = userService.findById(idUserRepost);
-        if (userRepost.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUserRepost), HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> createRepost(@RequestBody ReportViolations report,
+                                               @RequestParam Long idUserRepost,
+                                               @RequestParam Long idViolate,
+                                               @RequestParam String type) {
+        User userRepost = userService.checkExistUser(idUserRepost);
         if (Constants.REPOST_TYPE_USER.equalsIgnoreCase(type)) {
-            Optional<User> userViolate = userService.findById(idViolate);
-            if (userViolate.isEmpty()) {
-                return new ResponseEntity<>(ResponseNotification.
-                        responseMessage(Constants.IdCheck.ID_USER, idViolate), HttpStatus.NOT_FOUND);
-            }
-            report.setIdViolate(userViolate.get().getId());
+            User userViolate = userService.checkExistUser(idViolate);
+            report.setIdViolate(userViolate.getId());
             report.setType(Constants.REPOST_TYPE_USER);
         }
         if (Constants.REPOST_TYPE_POST.equalsIgnoreCase(type)) {
-            Optional<Post2> postOptional = postService.findById(idViolate);
-            if (postOptional.isEmpty()) {
-                return new ResponseEntity<>(ResponseNotification.
-                        responseMessage(Constants.IdCheck.ID_POST, idViolate), HttpStatus.NOT_FOUND);
-            }
-            report.setIdViolate(postOptional.get().getId());
+            Post2 postViolate = postService.checkExistPost(idViolate);
+            report.setIdViolate(postViolate.getId());
             report.setType(Constants.REPOST_TYPE_POST);
         }
         if (Constants.REPOST_TYPE_GROUP.equalsIgnoreCase(type)) {
@@ -87,13 +75,13 @@ public class ReportViolationsController {
         }
         report.setCreateAt(new Date());
         report.setStatus("R");
-        report.setIdUserReport(userRepost.get().getId());
+        report.setIdUserReport(userRepost.getId());
         reportRepository.save(report);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @DeleteMapping("/unRepost")
-    public ResponseEntity<?> unRepost(@RequestParam Long idUser, @RequestParam Long idViolate) {
+    public ResponseEntity<Object> unRepost(@RequestParam Long idUser, @RequestParam Long idViolate) {
         List<ReportViolations> reportViolations = reportRepository.findAllByIdUserReportAndIdViolate(idUser, idViolate);
         if (!CollectionUtils.isEmpty(reportViolations)) {
             reportRepository.delete(reportViolations.get(0));
@@ -102,9 +90,9 @@ public class ReportViolationsController {
     }
 
     @PutMapping("/editContent")
-    public ResponseEntity<?> editContent(@RequestParam Long idUser,
-                                         @RequestParam Long idViolate,
-                                         @RequestBody ReportViolations report) {
+    public ResponseEntity<Object> editContent(@RequestParam Long idUser,
+                                              @RequestParam Long idViolate,
+                                              @RequestBody ReportViolations report) {
         List<ReportViolations> reportViolations = reportRepository.findAllByIdUserReportAndIdViolate(idUser, idViolate);
         if (!CollectionUtils.isEmpty(reportViolations)) {
             ReportViolations reportViolation = reportViolations.get(0);
@@ -116,7 +104,7 @@ public class ReportViolationsController {
     }
 
     @GetMapping("/findOneRepost")
-    public ResponseEntity<?> findOneRepost(@RequestParam Long idUser, @RequestParam Long idViolate) {
+    public ResponseEntity<Object> findOneRepost(@RequestParam Long idUser, @RequestParam Long idViolate) {
         List<ReportViolations> reportViolations = reportRepository.findAllByIdUserReportAndIdViolate(idUser, idViolate);
         if (!CollectionUtils.isEmpty(reportViolations)) {
             ReportViolations reportViolation = reportViolations.get(0);

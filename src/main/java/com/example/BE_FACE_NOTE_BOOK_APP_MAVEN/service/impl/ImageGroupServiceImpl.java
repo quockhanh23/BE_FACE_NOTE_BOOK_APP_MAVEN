@@ -18,12 +18,13 @@ public class ImageGroupServiceImpl implements ImageGroupService {
     }
 
     @Override
-    public ImageGroup createImageGroupDefault(String image, Long idTheGroup, Long idUserUpLoad) {
+    public ImageGroup createImageGroupDefault(String imageUrl, Long idTheGroup, Long idUserUpLoad) {
         ImageGroup imageGroup = new ImageGroup();
         imageGroup.setStatus(Constants.STATUS_PUBLIC);
         imageGroup.setIdTheGroup(idTheGroup);
         imageGroup.setIdUserUpLoad(idUserUpLoad);
         imageGroup.setDeleteAt(null);
+        imageGroup.setLinkImage(imageUrl);
         return imageGroup;
     }
 

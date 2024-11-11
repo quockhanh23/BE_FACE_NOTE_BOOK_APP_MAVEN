@@ -11,7 +11,6 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.*;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.*;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -91,10 +89,10 @@ public class PostRestController {
     }
 
     @GetMapping("/allPostPublic")
-    public ResponseEntity<?> allPostPublic(@RequestParam Long idUser,
-                                           @RequestParam String type,
-                                           @RequestParam(required = false) Long idUserVisit,
-                                           @RequestHeader("Authorization") String authorization) {
+    public ResponseEntity<Object> allPostPublic(@RequestParam Long idUser,
+                                                @RequestParam String type,
+                                                @RequestParam(required = false) Long idUserVisit,
+                                                @RequestHeader("Authorization") String authorization) {
         try {
             boolean check;
             if (idUserVisit != null) {
@@ -138,10 +136,10 @@ public class PostRestController {
     }
 
     @DeleteMapping("/hidePost")
-    public ResponseEntity<?> hidePost(@RequestParam Long idUser, @RequestParam Long idPost,
-                                      @RequestParam String type,
-                                      @SuppressWarnings("unused")
-                                      @RequestHeader("Authorization") String authorization) {
+    public ResponseEntity<Object> hidePost(@RequestParam Long idUser, @RequestParam Long idPost,
+                                           @RequestParam String type,
+                                           @SuppressWarnings("unused")
+                                           @RequestHeader("Authorization") String authorization) {
         List<HidePost> list = hidePostRepository.findAllByIdUser(idUser);
         if (Constants.HIDE.equalsIgnoreCase(type)) {
             if (!CollectionUtils.isEmpty(list)) {
@@ -168,13 +166,12 @@ public class PostRestController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    // Tạo mới bài viết
     @PostMapping("/createPost")
     @Transactional()
-    public ResponseEntity<?> createPost(@RequestBody Post2 post,
-                                        @RequestParam Long idUser,
-                                        @SuppressWarnings("unused")
-                                        @RequestHeader("Authorization") String authorization) {
+    public ResponseEntity<Object> createPost(@RequestBody Post2 post,
+                                             @RequestParam Long idUser,
+                                             @SuppressWarnings("unused")
+                                             @RequestHeader("Authorization") String authorization) {
         if (((StringUtils.isNotEmpty(post.getContent()) && post.getContent().trim().equals(Constants.BLANK))
                 || (post.getContent() == null && post.getImage() == null))
                 || !Common.checkRegex(post.getContent(), Regex.CHECK_LENGTH_POST)) {
@@ -182,45 +179,32 @@ public class PostRestController {
                     HttpStatus.BAD_REQUEST);
         }
         Common.handlerWordsLanguage(post);
-        if (post.getImage() != null) {
+        if (StringUtils.isNotEmpty(post.getImage())) {
             Image image = imageService.createImageDefault(post.getImage(), post.getUser());
             imageService.save(image);
         }
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         postService.create(post);
-        post.setUser(userOptional.get());
+        post.setUser(user);
         postService.save(post);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    // Chỉnh sửa bài viết
     @PutMapping("/updatePost")
     @Transactional()
-    public ResponseEntity<?> updatePost(@RequestParam Long idPost, @RequestParam Long idUser,
-                                        @RequestBody Post2 post,
-                                        @SuppressWarnings("unused")
-                                        @RequestHeader("Authorization") String authorization) {
-        Optional<Post2> postOptional = postService.findById(idPost);
-        if (postOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_POST, idPost),
-                    HttpStatus.NOT_FOUND);
-        }
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> updatePost(@RequestParam Long idPost, @RequestParam Long idUser,
+                                             @RequestBody Post2 post,
+                                             @SuppressWarnings("unused")
+                                             @RequestHeader("Authorization") String authorization) {
+        Post2 postOptional = postService.checkExistPost(idPost);
+        User user = userService.checkExistUser(idUser);
         Common.handlerWordsLanguage(post);
-        if (postOptional.get().getUser().getId().equals(userOptional.get().getId())) {
-            postOptional.get().setEditAt(new Date());
+        if (postOptional.getUser().getId().equals(user.getId())) {
+            postOptional.setEditAt(new Date());
             if (StringUtils.isNotEmpty(post.getContent()) && post.getContent().trim().equals(Constants.BLANK)) {
-                postOptional.get().setContent(post.getContent());
+                postOptional.setContent(post.getContent());
             }
-            postService.save(postOptional.get());
+            postService.save(postOptional);
             return new ResponseEntity<>(HttpStatus.OK);
         }
         return new ResponseEntity<>(new ResponseNotification(HttpStatus.BAD_REQUEST.toString(),
@@ -228,100 +212,62 @@ public class PostRestController {
                 HttpStatus.BAD_REQUEST);
     }
 
-    // Update like
     @DeleteMapping("/updateReflectPost")
-    public ResponseEntity<?> updateReflectPost(@RequestParam Long idPost,
-                                               @RequestParam String type) {
-        Optional<Post2> postOptional = postService.findById(idPost);
-        if (postOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_POST, idPost),
-                    HttpStatus.NOT_FOUND);
-        }
-        if ("like".equalsIgnoreCase(type)) {
-            List<LikePost> likePost = likePostService.findAllLikeByPostId(idPost);
-            if (!CollectionUtils.isEmpty(likePost)) {
-                postOptional.get().setNumberLike((long) likePost.size());
+    public ResponseEntity<Object> updateReflectPost(@RequestParam Long idPost,
+                                                    @RequestParam String type) {
+        Post2 post = postService.checkExistPost(idPost);
+        List<LikePost> likePost = new ArrayList<>();
+        List<DisLikePost> disLikePosts = new ArrayList<>();
+        List<IconHeart> iconHearts = new ArrayList<>();
+        switch (type) {
+            case "like" -> likePost = likePostService.findAllLikeByPostId(idPost);
+            case "disLike" -> disLikePosts = disLikePostService.findAllDisLikeByPostId(idPost);
+            case "heart" -> iconHearts = iconHeartService.findAllHeartByPostId(idPost);
+            default -> {
+                likePost = likePostService.findAllLikeByPostId(idPost);
+                disLikePosts = disLikePostService.findAllDisLikeByPostId(idPost);
+                iconHearts = iconHeartService.findAllHeartByPostId(idPost);
             }
         }
-        if ("disLike".equalsIgnoreCase(type)) {
-            List<DisLikePost> disLikePosts = disLikePostService.findAllDisLikeByPostId(idPost);
-            if (!CollectionUtils.isEmpty(disLikePosts)) {
-                postOptional.get().setNumberDisLike((long) disLikePosts.size());
-            }
-        }
-        if ("heart".equalsIgnoreCase(type)) {
-            List<IconHeart> iconHearts = iconHeartService.findAllHeartByPostId(idPost);
-            if (!CollectionUtils.isEmpty(iconHearts)) {
-                postOptional.get().setIconHeart((long) iconHearts.size());
-            }
-        }
-        if ("all".equalsIgnoreCase(type)) {
-            List<LikePost> likePost = likePostService.findAllLikeByPostId(idPost);
-            if (!CollectionUtils.isEmpty(likePost)) {
-                postOptional.get().setNumberLike((long) likePost.size());
-            }
-            List<DisLikePost> disLikePosts = disLikePostService.findAllDisLikeByPostId(idPost);
-            if (!CollectionUtils.isEmpty(disLikePosts)) {
-                postOptional.get().setNumberDisLike((long) disLikePosts.size());
-            }
-            List<IconHeart> iconHearts = iconHeartService.findAllHeartByPostId(idPost);
-            if (!CollectionUtils.isEmpty(iconHearts)) {
-                postOptional.get().setIconHeart((long) iconHearts.size());
-            }
-        }
-        postService.save(postOptional.get());
+        post.setNumberLike((long) likePost.size());
+        post.setNumberDisLike((long) disLikePosts.size());
+        post.setIconHeart((long) iconHearts.size());
+        post.setIconHeart((long) iconHearts.size());
+        postService.save(post);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    // Đổi trạng thái post sang public, private, chuyển vào thùng rác
     @DeleteMapping("/changeStatusPost")
-    public ResponseEntity<?> changeStatusPost(@RequestParam Long idPost,
-                                              @RequestParam Long idUser,
-                                              @RequestParam String type,
-                                              @SuppressWarnings("unused")
-                                              @RequestHeader("Authorization") String authorization) {
-        Optional<Post2> postOptional = postService.findById(idPost);
-        if (postOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_POST, idPost),
-                    HttpStatus.NOT_FOUND);
+    public ResponseEntity<Object> changeStatusPost(@RequestParam Long idPost,
+                                                   @RequestParam Long idUser,
+                                                   @RequestParam String type,
+                                                   @SuppressWarnings("unused")
+                                                   @RequestHeader("Authorization") String authorization) {
+        Post2 post = postService.checkExistPost(idPost);
+        userService.checkExistUser(idUser);
+        switch (type) {
+            case "Public" -> post.setStatus(Constants.STATUS_PUBLIC);
+            case "Private" -> post.setStatus(Constants.STATUS_PRIVATE);
+            case "Delete" -> {
+                post.setStatus(Constants.STATUS_DELETE);
+                post.setDelete(true);
+            }
+            default -> {
+                return new ResponseEntity<>(MessageResponse.IN_VALID, HttpStatus.NOT_FOUND);
+            }
         }
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
-        if ("Public".equals(type)) {
-            postOptional.get().setStatus(Constants.STATUS_PUBLIC);
-        }
-        if ("Private".equals(type)) {
-            postOptional.get().setStatus(Constants.STATUS_PRIVATE);
-        }
-        if ("Delete".equals(type)) {
-            postOptional.get().setStatus(Constants.STATUS_DELETE);
-            postOptional.get().setDelete(true);
-        }
-        if (!StringUtils.isEmpty(type) && ("Public".equals(type) || "Private".equals(type) || "Delete".equals(type))) {
-            postService.save(postOptional.get());
-            return new ResponseEntity<>(HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(new ResponseNotification(HttpStatus.BAD_REQUEST.toString(),
-                    MessageResponse.IN_VALID, MessageResponse.DESCRIPTION),
-                    HttpStatus.BAD_REQUEST);
-        }
+        postService.save(post);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Transactional
     @DeleteMapping("/actionAllPost")
-    public ResponseEntity<?> actionAllPost(@RequestParam List<Long> listIdPost,
-                                           @RequestParam Long idUser,
-                                           @RequestParam String type,
-                                           @SuppressWarnings("unused")
-                                           @RequestHeader("Authorization") String authorization) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> actionAllPost(@RequestParam List<Long> listIdPost,
+                                                @RequestParam Long idUser,
+                                                @RequestParam String type,
+                                                @SuppressWarnings("unused")
+                                                @RequestHeader("Authorization") String authorization) {
+        userService.checkExistUser(idUser);
         List<Post2> post2List = postRepository.findAllById(listIdPost);
         // Xóa tất cả bài viết
         if (Constants.DELETE_ALL.equalsIgnoreCase(type)) {
@@ -353,31 +299,27 @@ public class PostRestController {
     }
 
     @GetMapping("findOnePostById")
-    public ResponseEntity<?> findOnePostById(@RequestParam Long idPost,
-                                             @RequestHeader("Authorization") String authorization) {
-        Optional<Post2> postOptional = postService.findById(idPost);
-        if (postOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_POST, idPost),
-                    HttpStatus.NOT_FOUND);
-        }
-        if (!userService.errorToken(authorization, postOptional.get().getUser().getId())) {
+    public ResponseEntity<Object> findOnePostById(@RequestParam Long idPost,
+                                                  @RequestHeader("Authorization") String authorization) {
+        Post2 post = postService.checkExistPost(idPost);
+        if (!userService.errorToken(authorization, post.getUser().getId())) {
             return new ResponseEntity<>(new ResponseNotification(HttpStatus.UNAUTHORIZED.toString(),
                     Constants.TOKEN, Constants.TOKEN + " " + MessageResponse.IN_VALID.toLowerCase()),
                     HttpStatus.UNAUTHORIZED);
         }
-        PostDTO postDTO = modelMapper.map(postOptional.get(), PostDTO.class);
-        UserDTO userDTO = modelMapper.map(postOptional.get().getUser(), UserDTO.class);
+        PostDTO postDTO = modelMapper.map(post, PostDTO.class);
+        UserDTO userDTO = modelMapper.map(post.getUser(), UserDTO.class);
         postDTO.setUserDTO(userDTO);
         return new ResponseEntity<>(postDTO, HttpStatus.OK);
     }
 
-    // Tất cả bài viết trong thùng rác
     @GetMapping("/allPostInTrash")
-    public ResponseEntity<?> allPostInTrash(@RequestParam Long idUser,
-                                            @RequestHeader("Authorization") String authorization) {
+    public ResponseEntity<Object> allPostInTrash(@RequestParam Long idUser,
+                                                 @RequestHeader("Authorization") String authorization) {
         if (!userService.errorToken(authorization, idUser)) {
             return new ResponseEntity<>(new ResponseNotification(HttpStatus.UNAUTHORIZED.toString(),
-                    Constants.TOKEN, Constants.TOKEN + " " + MessageResponse.IN_VALID.toLowerCase()),
+                    Constants.TOKEN, Constants.TOKEN +
+                    StringUtils.SPACE + MessageResponse.IN_VALID.toLowerCase()),
                     HttpStatus.UNAUTHORIZED);
         }
         List<Post2> post2List = postService.findAllByUserIdAndDeleteTrue(idUser);

@@ -47,13 +47,13 @@ public class ImageServiceImpl implements ImageService {
     }
 
     @Override
-    public Image createImageDefault(String image, User user) {
-        Image image1 = new Image();
-        image1.setLinkImage(image);
-        image1.setStatus(Constants.STATUS_PUBLIC);
-        image1.setDeleteAt(null);
-        image1.setIdUser(user.getId());
-        return image1;
+    public Image createImageDefault(String imageUrl, User user) {
+        Image image = new Image();
+        image.setLinkImage(imageUrl);
+        image.setStatus(Constants.STATUS_PUBLIC);
+        image.setDeleteAt(null);
+        image.setIdUser(user.getId());
+        return image;
     }
 
     @Override

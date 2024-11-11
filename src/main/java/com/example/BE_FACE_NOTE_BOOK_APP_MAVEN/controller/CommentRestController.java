@@ -9,7 +9,6 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.*;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.*;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,66 +99,52 @@ public class CommentRestController {
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
 
-    // Tạo mới comment
     @PostMapping("/createComment")
-    public ResponseEntity<?> createComment(@RequestBody Comment comment,
-                                           @RequestParam Long idUser,
-                                           @RequestParam Long idPost) {
+    public ResponseEntity<Object> createComment(@RequestBody Comment comment,
+                                                @RequestParam Long idUser,
+                                                @RequestParam Long idPost) {
         if (StringUtils.isEmpty(comment.getContent().trim())
                 || !Common.checkRegex(comment.getContent(), Regex.CHECK_LENGTH_COMMENT)) {
             return new ResponseEntity<>(ResponseNotification.responseMessageDataField(Constants.DataField.CONTENT),
                     HttpStatus.BAD_REQUEST);
         }
         Common.handlerWordsLanguage(comment);
-        Optional<Post2> post2Optional = postService.findById(idPost);
-        if (post2Optional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_POST, idPost), HttpStatus.NOT_FOUND);
-        }
+        Post2 post = postService.checkExistPost(idPost);
         Optional<User> userOptional = userService.findById(idUser);
         if (userOptional.isEmpty()) {
             return new ResponseEntity<>(ResponseNotification.
                     responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
         }
-        commentService.create(comment);
-        comment.setPost(post2Optional.get());
+        commentService.createDefault(comment);
+        comment.setPost(post);
         comment.setUser(userOptional.get());
         commentService.save(comment);
         CommentDTO commentDTO = modelMapper.map(comment, CommentDTO.class);
         commentDTO.setUserDTO(userService.mapper(userService.checkUser(idUser)));
-        commentDTO.setPostDTO(postService.mapper(post2Optional.get()));
-        if (!post2Optional.get().getUser().getId().equals(idUser)) {
+        commentDTO.setPostDTO(postService.mapper(post));
+        if (!post.getUser().getId().equals(idUser)) {
             String title = Constants.Notification.TITLE_COMMENT;
             String type = Constants.Notification.TYPE_COMMENT;
             Notification notification = notificationService.
-                    createDefault(post2Optional.get().getUser(), userOptional.get(), title, idPost, type);
+                    createDefault(post.getUser(), userOptional.get(), title, idPost, type);
             notificationService.save(notification);
         }
         return new ResponseEntity<>(commentDTO, HttpStatus.OK);
     }
 
-    // Xóa comment và xóa các answer comment
     @DeleteMapping("/deleteComment")
-    public ResponseEntity<?> deleteComment(@RequestParam Long idUser,
-                                           @RequestParam Long idComment,
-                                           @RequestParam Long idPost) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> deleteComment(@RequestParam Long idUser,
+                                                @RequestParam Long idComment,
+                                                @RequestParam Long idPost) {
+        User user = userService.checkExistUser(idUser);
         Optional<Comment> commentOptional = commentService.findById(idComment);
         if (commentOptional.isEmpty()) {
             return new ResponseEntity<>(ResponseNotification
                     .responseMessage(Constants.IdCheck.ID_COMMENT, idComment), HttpStatus.NOT_FOUND);
         }
-        Optional<Post2> post2Optional = postService.findById(idPost);
-        if (post2Optional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_POST, idPost),
-                    HttpStatus.NOT_FOUND);
-        }
-        if ((userOptional.get().getId().equals(commentOptional.get().getUser().getId())) ||
-                (userOptional.get().getId().equals(commentOptional.get().getPost().getUser().getId()))) {
+        postService.checkExistPost(idPost);
+        if ((user.getId().equals(commentOptional.get().getUser().getId())) ||
+                (user.getId().equals(commentOptional.get().getPost().getUser().getId()))) {
             commentOptional.get().setDeleteAt(LocalDateTime.now());
             commentOptional.get().setDelete(true);
             commentService.save(commentOptional.get());
@@ -177,7 +162,6 @@ public class CommentRestController {
                 HttpStatus.BAD_REQUEST);
     }
 
-    // Xem tất cả comment của 1 bài viết theo người comment
     @GetMapping("/getAllCommentByIdUser")
     public ResponseEntity<List<Comment>> getAllCommentByIdUser(@RequestParam Long idUser) {
         List<Comment> commentList = commentService.findAllByUserId(idUser);
@@ -185,7 +169,6 @@ public class CommentRestController {
         return new ResponseEntity<>(commentList, HttpStatus.OK);
     }
 
-    // Xem tất cả comment của 1 bài viết theo bài viết
     @GetMapping("/getAllCommentByIdPost")
     public ResponseEntity<List<Comment>> getAllCommentByIdPost(@RequestParam Long idPost) {
         List<Comment> commentList = commentService.getCommentByIdPost(idPost);

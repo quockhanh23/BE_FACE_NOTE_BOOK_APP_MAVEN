@@ -15,18 +15,22 @@ public interface ShortNewsRepository extends JpaRepository<ShortNews, Long> {
     void delete(ShortNews entity);
 
     @Modifying
-    @Query(value = "select * from short_news where remaining >= 0 order by create_at desc limit 4", nativeQuery = true)
+    @Query(value = "select * from short_news where expired = '1' and status = 'Public' order by created_at desc limit 4", nativeQuery = true)
     List<ShortNews> findAllShortNews();
 
     @Modifying
-    @Query(value = "select * from short_news where status = 'Public' order by create_at desc", nativeQuery = true)
+    @Query(value = "select * from short_news where expired = '1' and status = 'Public' order by created_at desc", nativeQuery = true)
     List<ShortNews> findAllShortNewsPublic();
 
     @Modifying
-    @Query(value = "select * from short_news where user_id= :idUser and is_delete = false order by create_at desc", nativeQuery = true)
+    @Query(value = "select * from short_news where user_id= :idUser and is_delete = false order by created_at desc", nativeQuery = true)
     List<ShortNews> myShortNew(@Param("idUser") Long idUser);
 
     @Modifying
     @Query(value = "select * from short_news where is_delete is true and user_id = :idUser order by id desc", nativeQuery = true)
     List<ShortNews> getListShortNewInTrash(@Param("idUser") Long idUser);
+
+    @Modifying
+    @Query(value = "select * from short_news where is_delete is false and expired = '1' ", nativeQuery = true)
+    List<ShortNews> checkExpiryDate();
 }

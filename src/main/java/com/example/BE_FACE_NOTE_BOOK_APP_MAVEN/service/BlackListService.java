@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface BlackListService {
 
-    void create(BlackList blackList);
+    void saveToBlackList(BlackList blackList);
 
     void createDefault(BlackList blackList, Long idUserLogin, Long idBlock, String type);
 

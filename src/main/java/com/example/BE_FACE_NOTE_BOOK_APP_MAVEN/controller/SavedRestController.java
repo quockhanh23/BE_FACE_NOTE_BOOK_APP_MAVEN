@@ -52,7 +52,7 @@ public class SavedRestController {
 
     // Danh sách đã lưu
     @GetMapping("/listSavedPost")
-    public ResponseEntity<?> listSavedPost(@RequestParam Long idUser) {
+    public ResponseEntity<Object> listSavedPost(@RequestParam Long idUser) {
         List<Saved> savedList = savedRepository.findAllSavedPost(idUser);
         if (CollectionUtils.isEmpty(savedList)) {
             savedList = new ArrayList<>();
@@ -62,18 +62,14 @@ public class SavedRestController {
 
     // Lưu trữ bài viết
     @GetMapping("/savePost")
-    public ResponseEntity<?> savePost(@RequestParam Long idPost, @RequestParam Long idUser, @RequestParam String type) {
-        Optional<Post2> postOptional = postService.findById(idPost);
-        Optional<GroupPost> groupPost = groupPostService.findById(idPost);
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> savePost(@RequestParam Long idPost,
+                                           @RequestParam Long idUser,
+                                           @RequestParam String type) {
+        User user = userService.checkExistUser(idUser);
         List<Saved> savedList = savedRepository.findAll();
         if (!CollectionUtils.isEmpty(savedList)) {
             for (int i = 0; i < savedList.size(); i++) {
-                if (savedList.get(i).getIdUser().equals(userOptional.get().getId())
+                if (savedList.get(i).getIdUser().equals(user.getId())
                         && savedList.get(i).getIdPost().equals(idPost)) {
                     if (savedList.get(i).getStatus().equals(Constants.STATUS_SAVED)) {
                         return new ResponseEntity<>(new ResponseNotification(HttpStatus.BAD_REQUEST.toString(),
@@ -91,16 +87,14 @@ public class SavedRestController {
         }
         Saved saved = new Saved();
         if ("post".equalsIgnoreCase(type)) {
-            if (postOptional.isEmpty()) {
-                return new ResponseEntity<>(ResponseNotification.
-                        responseMessage(Constants.IdCheck.ID_POST, idPost), HttpStatus.NOT_FOUND);
-            }
+            Post2 post = postService.checkExistPost(idPost);
             saved.setType("Post");
-            saved.setUserCreate(postOptional.get().getUser().getFullName());
-            saved.setImagePost(postOptional.get().getImage());
-            saved.setContent(postOptional.get().getContent());
+            saved.setUserCreate(post.getUser().getFullName());
+            saved.setImagePost(post.getImage());
+            saved.setContent(post.getContent());
         }
         if ("groupPost".equalsIgnoreCase(type)) {
+            Optional<GroupPost> groupPost = groupPostService.findById(idPost);
             if (groupPost.isEmpty()) {
                 return new ResponseEntity<>(ResponseNotification.
                         responseMessage(Constants.IdCheck.ID_POST, idPost), HttpStatus.NOT_FOUND);
@@ -121,18 +115,14 @@ public class SavedRestController {
 
     // Xóa bài viết đã lưu trữ
     @GetMapping("/removeSavePost")
-    public ResponseEntity<?> removeSavePost(@RequestParam Long idPost, @RequestParam Long idSaved) {
-        Optional<Post2> postOptional = postService.findById(idPost);
-        if (postOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_POST, idPost), HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> removeSavePost(@RequestParam Long idPost, @RequestParam Long idSaved) {
+        Post2 post = postService.checkExistPost(idPost);
         Optional<Saved> savedOptional = savedRepository.findById(idSaved);
         if (savedOptional.isEmpty()) {
             return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_SAVE, idSaved),
                     HttpStatus.NOT_FOUND);
         }
-        if (savedOptional.get().getIdPost().equals(postOptional.get().getId())) {
+        if (savedOptional.get().getIdPost().equals(post.getId())) {
             savedOptional.get().setStatus(Constants.STATUS_DELETE);
             savedRepository.save(savedOptional.get());
             return new ResponseEntity<>(HttpStatus.OK);

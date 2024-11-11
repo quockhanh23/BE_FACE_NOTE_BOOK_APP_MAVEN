@@ -3,10 +3,10 @@ package com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service;
 
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.dto.ListAvatarDefault;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.dto.UserDTO;
+import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.LastUserLogin;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.User;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification;
 import org.springframework.data.repository.query.Param;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.List;
@@ -26,8 +26,6 @@ public interface UserService extends UserDetailsService {
     Optional<User> getCurrentUser();
 
     Optional<User> findById(Long id);
-
-    UserDetails loadUserById(Long id);
 
     boolean checkLogin(User user);
 
@@ -76,4 +74,10 @@ public interface UserService extends UserDetailsService {
     List<UserDTO> copyListDTO(List<User> users);
 
     void saveImageUserLogin(Long idUser, String image);
+
+    User checkExistUser(Long idUser);
+
+    void saveHistoryLogin(Long idUserLogin, String ipAddress);
+
+    List<LastUserLogin> getListHistoryLogin();
 }

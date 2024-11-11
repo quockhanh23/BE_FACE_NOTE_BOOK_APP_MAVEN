@@ -39,7 +39,7 @@ public class UserDescriptionRestController {
     }
 
     @GetMapping("/getDescriptionByIdUser")
-    public ResponseEntity<?> getDescriptionByIdUser(@RequestParam Long idUser) {
+    public ResponseEntity<Object> getDescriptionByIdUser(@RequestParam Long idUser) {
         List<UserDescription> list = userDescriptionService.findAllByUserId(idUser);
         if (CollectionUtils.isEmpty(list)) return new ResponseEntity<>(HttpStatus.OK);
         return new ResponseEntity<>(list.get(0), HttpStatus.OK);
@@ -47,18 +47,14 @@ public class UserDescriptionRestController {
 
     // Tạo mới mô tả
     @PostMapping("/createDescription")
-    public ResponseEntity<?> createDescription(@RequestBody UserDescription userDescription,
+    public ResponseEntity<Object> createDescription(@RequestBody UserDescription userDescription,
                                                @RequestParam Long idUser) {
         if (StringUtils.isEmpty(userDescription.getDescription())) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         Common.handlerWordsLanguage(userDescription);
-        Optional<User> optionalUser = userService.findById(idUser);
-        if (optionalUser.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
-        userDescription.setUser(optionalUser.get());
+        User user = userService.checkExistUser(idUser);
+        userDescription.setUser(user);
         userDescription.setCreateAt(new Date());
         userDescription.setStatus(Constants.STATUS_PUBLIC);
         userDescriptionService.save(userDescription);
@@ -67,7 +63,7 @@ public class UserDescriptionRestController {
 
     // Sửa mô tả
     @PutMapping("/editDescription")
-    public ResponseEntity<?> editDescription(@RequestBody UserDescription userDescription,
+    public ResponseEntity<Object> editDescription(@RequestBody UserDescription userDescription,
                                              @RequestParam Long idUserDescription) {
         if (StringUtils.isEmpty(userDescription.getDescription())) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -86,7 +82,7 @@ public class UserDescriptionRestController {
 
     // Xóa mô tả
     @DeleteMapping("/deleteDescription")
-    public ResponseEntity<?> deleteDescription(@RequestParam Long idUser) {
+    public ResponseEntity<Object> deleteDescription(@RequestParam Long idUser) {
         List<UserDescription> list = userDescriptionService.findAllByUserId(idUser);
         if (!CollectionUtils.isEmpty(list)) userDescriptionService.delete(list.get(0));
         return new ResponseEntity<>(HttpStatus.OK);

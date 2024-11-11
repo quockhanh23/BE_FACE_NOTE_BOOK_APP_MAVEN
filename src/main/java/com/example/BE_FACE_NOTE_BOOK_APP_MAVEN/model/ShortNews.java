@@ -1,5 +1,6 @@
 package com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model;
 
+import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.common.ShortNewsExpiredStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,10 +20,10 @@ public class ShortNews {
     private Long id;
     @Column(length = 120)
     private String content;
-    private Date createAt;
-    private int expired;
-    private int remaining;
-    private Date toDay;
+    private Date createdAt;
+    private Date updatedAt;
+    private Date expirationDate;
+    private ShortNewsExpiredStatus expired;
     @Column(length = 1000)
     private String image;
     @ManyToOne

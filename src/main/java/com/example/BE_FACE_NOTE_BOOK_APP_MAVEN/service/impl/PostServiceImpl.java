@@ -1,8 +1,10 @@
 package com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.impl;
 
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.common.Constants;
+import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.common.MessageResponse;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.dto.PostDTO;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.dto.UserDTO;
+import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.exeption.InvalidException;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.*;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.AnswerCommentRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.DisLikeCommentRepository;
@@ -192,6 +194,13 @@ public class PostServiceImpl implements PostService {
         likeCommentRepository.deleteAllInBatch(likeComments);
         disLikeCommentRepository.deleteAllInBatch(disLikeComments);
         answerCommentRepository.deleteAllInBatch(answerCommentList);
+    }
+
+    @Override
+    public Post2 checkExistPost(Long idPost) {
+        Optional<Post2> post2Optional = findById(idPost);
+        if (post2Optional.isEmpty()) throw new InvalidException(MessageResponse.NOT_FOUND_POST + idPost);
+        return post2Optional.get();
     }
 
 //    public List<Post2> getListLCReFile(String lcRef, String requestCode, Integer productType) {

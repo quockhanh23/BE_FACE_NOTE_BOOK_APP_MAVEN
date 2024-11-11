@@ -37,7 +37,7 @@ public class NotificationController {
     }
 
     @GetMapping("/getAllNotificationByIdSenTo")
-    public ResponseEntity<?> getAllNotificationByIdSenTo(@RequestParam Long idSenTo) {
+    public ResponseEntity<Object> getAllNotificationByIdSenTo(@RequestParam Long idSenTo) {
         List<Notification> notificationList = notificationService.findAllByIdSendTo(idSenTo);
         List<NotificationDTO> notificationDTOS = new ArrayList<>();
         if (!CollectionUtils.isEmpty(notificationList)) {
@@ -55,14 +55,14 @@ public class NotificationController {
     }
 
     @GetMapping("/findAllByIdSendToNotSeen")
-    public ResponseEntity<?> findAllByIdSendToNotSeen(@RequestParam Long idSenTo) {
+    public ResponseEntity<Object> findAllByIdSendToNotSeen(@RequestParam Long idSenTo) {
         List<Notification> notificationList = notificationService.findAllByIdSendToNotSeen(idSenTo);
         return new ResponseEntity<>(notificationList.size(), HttpStatus.OK);
     }
 
     // Đã xem tất cả thông báo
     @GetMapping("/seenAll")
-    public ResponseEntity<?> seenAll(@RequestParam Long idSenTo) {
+    public ResponseEntity<Object> seenAll(@RequestParam Long idSenTo) {
         List<Notification> notificationList = notificationService.findAllByIdSendTo(idSenTo);
         if (!CollectionUtils.isEmpty(notificationList)) {
             notificationList.forEach(notification -> notification.setStatus(Constants.Notification.STATUS_SEEN));
@@ -73,7 +73,7 @@ public class NotificationController {
 
     // Xóa tất cả thông báo
     @DeleteMapping("/deleteAll")
-    public ResponseEntity<?> deleteAll(@RequestParam Long idSenTo) {
+    public ResponseEntity<Object> deleteAll(@RequestParam Long idSenTo) {
         List<Notification> notificationList = notificationService.findAllByIdSendTo(idSenTo);
         if (!CollectionUtils.isEmpty(notificationList)) {
             notificationService.deleteAll(notificationList);

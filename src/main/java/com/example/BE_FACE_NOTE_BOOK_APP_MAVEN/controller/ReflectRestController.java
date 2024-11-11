@@ -5,6 +5,7 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.*;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
@@ -66,14 +67,9 @@ public class ReflectRestController {
         this.notificationService = notificationService;
     }
 
-    // Xem like của post
     @GetMapping("/getAllLike")
-    public ResponseEntity<?> getAllLike(@RequestParam Long idPost) {
-        Optional<Post2> postOptional = postService.findById(idPost);
-        if (postOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_POST, idPost),
-                    HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> getAllLike(@RequestParam Long idPost) {
+        postService.checkExistPost(idPost);
         List<LikePost> likePosts = likePostService.findAllLikeByPostId(idPost);
         if (CollectionUtils.isEmpty(likePosts)) {
             likePosts = new ArrayList<>();
@@ -82,12 +78,8 @@ public class ReflectRestController {
     }
 
     @GetMapping("/getAllHeart")
-    public ResponseEntity<?> getAllHeart(@RequestParam Long idPost) {
-        Optional<Post2> postOptional = postService.findById(idPost);
-        if (postOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_POST, idPost),
-                    HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> getAllHeart(@RequestParam Long idPost) {
+        postService.checkExistPost(idPost);
         List<IconHeart> iconHearts = iconHeartService.findAllHeartByPostId(idPost);
         if (CollectionUtils.isEmpty(iconHearts)) {
             iconHearts = new ArrayList<>();
@@ -95,14 +87,9 @@ public class ReflectRestController {
         return new ResponseEntity<>(iconHearts, HttpStatus.OK);
     }
 
-    // Xem dislike của post
     @GetMapping("/getAllDisLike")
-    public ResponseEntity<?> getAllDisLike(@RequestParam Long idPost) {
-        Optional<Post2> postOptional = postService.findById(idPost);
-        if (postOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_POST, idPost),
-                    HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> getAllDisLike(@RequestParam Long idPost) {
+        postService.checkExistPost(idPost);
         List<DisLikePost> disLikePosts = disLikePostService.findAllDisLikeByPostId(idPost);
         if (CollectionUtils.isEmpty(disLikePosts)) {
             disLikePosts = new ArrayList<>();
@@ -111,20 +98,12 @@ public class ReflectRestController {
     }
 
     @DeleteMapping("/actionReflectPost")
-    public ResponseEntity<?> actionReflectPost(@RequestParam Long idPost,
-                                               @RequestParam Long idUser,
-                                               @RequestParam String type) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
-        Optional<Post2> postOptional = postService.findById(idPost);
-        if (postOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_POST, idPost),
-                    HttpStatus.NOT_FOUND);
-        }
-        String title = "";
+    public ResponseEntity<Object> actionReflectPost(@RequestParam Long idPost,
+                                                    @RequestParam Long idUser,
+                                                    @RequestParam String type) {
+        User user = userService.checkExistUser(idUser);
+        Post2 post = postService.checkExistPost(idPost);
+        String title = StringUtils.EMPTY;
         if ("like".equalsIgnoreCase(type)) {
             title = Constants.Notification.TITLE_LIKE_POST;
             List<LikePost> likePostIterable = likePostService.findLike(idPost, idUser);
@@ -133,9 +112,9 @@ public class ReflectRestController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
             LikePost likePost = new LikePost();
-            likePost.setUserLike(userOptional.get());
+            likePost.setUserLike(user);
             likePost.setCreateAt(LocalDateTime.now());
-            likePost.setPost(postOptional.get());
+            likePost.setPost(post);
             likePostService.save(likePost);
         }
         if ("heart".equalsIgnoreCase(type)) {
@@ -146,9 +125,9 @@ public class ReflectRestController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
             IconHeart iconHeart = new IconHeart();
-            iconHeart.setUser(userOptional.get());
+            iconHeart.setUser(user);
             iconHeart.setCreateAt(new Date());
-            iconHeart.setPost(postOptional.get());
+            iconHeart.setPost(post);
             iconHeartService.save(iconHeart);
         }
         if ("disLike".equalsIgnoreCase(type)) {
@@ -160,15 +139,15 @@ public class ReflectRestController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
             DisLikePost disLikePost = new DisLikePost();
-            disLikePost.setUserDisLike(userOptional.get());
+            disLikePost.setUserDisLike(user);
             disLikePost.setCreateAt(new Date());
-            disLikePost.setPost(postOptional.get());
+            disLikePost.setPost(post);
             disLikePostService.save(disLikePost);
         }
-        if (!postOptional.get().getUser().getId().equals(idUser)) {
+        if (!post.getUser().getId().equals(idUser)) {
             String typeNotification = Constants.Notification.TYPE_POST;
             Notification notification = notificationService.
-                    createDefault(postOptional.get().getUser(), userOptional.get(), title, idPost, typeNotification);
+                    createDefault(post.getUser(), user, title, idPost, typeNotification);
             notificationService.save(notification);
         }
         return new ResponseEntity<>(HttpStatus.OK);
@@ -176,20 +155,16 @@ public class ReflectRestController {
 
     @Transactional
     @DeleteMapping("/actionReflectComment")
-    public ResponseEntity<?> actionReflectComment(@RequestParam Long idComment,
-                                                  @RequestParam Long idUser,
-                                                  @RequestParam String type) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> actionReflectComment(@RequestParam Long idComment,
+                                                       @RequestParam Long idUser,
+                                                       @RequestParam String type) {
+        User user = userService.checkExistUser(idUser);
         Optional<Comment> commentOptional = commentService.findById(idComment);
         if (commentOptional.isEmpty()) {
             return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_COMMENT, idComment),
                     HttpStatus.NOT_FOUND);
         }
-        String title = "";
+        String title = StringUtils.EMPTY;
         if ("like".equalsIgnoreCase(type)) {
             title = Constants.Notification.TITLE_LIKE_COMMENT;
             List<LikeComment> likeComments = likeCommentService.findLikeComment(idComment, idUser);
@@ -198,7 +173,7 @@ public class ReflectRestController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
             LikeComment likeComment = new LikeComment();
-            likeComment.setUserLike(userOptional.get());
+            likeComment.setUserLike(user);
             likeComment.setCreateAt(new Date());
             likeComment.setComment(commentOptional.get());
             likeCommentService.save(likeComment);
@@ -211,7 +186,7 @@ public class ReflectRestController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
             DisLikeComment disLikeComment = new DisLikeComment();
-            disLikeComment.setUserDisLike(userOptional.get());
+            disLikeComment.setUserDisLike(user);
             disLikeComment.setCreateAt(new Date());
             disLikeComment.setComment(commentOptional.get());
             disLikeCommentService.save(disLikeComment);
@@ -219,7 +194,7 @@ public class ReflectRestController {
         if (!commentOptional.get().getUser().getId().equals(idUser)) {
             String typeNotification = Constants.Notification.TYPE_COMMENT;
             Notification notification = notificationService.
-                    createDefault(commentOptional.get().getUser(), userOptional.get(), title, idComment, typeNotification);
+                    createDefault(commentOptional.get().getUser(), user, title, idComment, typeNotification);
             notificationService.save(notification);
         }
         return new ResponseEntity<>(HttpStatus.OK);

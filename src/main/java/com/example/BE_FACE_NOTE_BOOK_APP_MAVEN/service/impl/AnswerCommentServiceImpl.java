@@ -36,7 +36,7 @@ public class AnswerCommentServiceImpl implements AnswerCommentService {
     }
 
     @Override
-    public void create(AnswerComment answerComment) {
+    public void createDefault(AnswerComment answerComment) {
         answerComment.setCreateAt(LocalDateTime.now());
         answerComment.setDelete(false);
         answerComment.setEditAt(null);

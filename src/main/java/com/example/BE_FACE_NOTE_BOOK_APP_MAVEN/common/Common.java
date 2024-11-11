@@ -57,11 +57,10 @@ public class Common {
         try {
             Field[] fieldsOfFieldClass = FieldsCheckWords.class.getDeclaredFields();
             String[] dirtyWords = {"FUCK", "ĐỊT", "LỒN", "ĐMM", "ĐCM", "CU", "CẶC", "DÁI"};
-            for (int i = 0; i < fieldsOfFieldClass.length; i++) {
-                Field field = fieldsOfFieldClass[i];
+            for (Field field : fieldsOfFieldClass) {
                 field.setAccessible(true);
                 Object value = field.get(obTransfer);
-                if (null == value) value = "";
+                if (null == value) value = StringUtils.EMPTY;
                 int check = handleWords(value.toString().toUpperCase(), dirtyWords);
                 if (check == 1) throw new InvalidException(convertFieldName(field.getName()));
             }
@@ -78,35 +77,19 @@ public class Common {
 
     private static String convertFieldName(String field) {
         String content = " chứa những từ ngữ không phù hợp";
-        if (field.equals(Constants.FieldsCheckWords.FIELD_USER_NAME)) {
-            return "Tên đăng nhập" + content;
-        }
-        if (field.equals(Constants.FieldsCheckWords.FIELD_FULL_NAME)) {
-            return "Tên đầy đủ" + content;
-        }
-        if (field.equals(Constants.FieldsCheckWords.FIELD_EMAIL)) {
-            return "Email" + content;
-        }
-        if (field.equals(Constants.FieldsCheckWords.FIELD_ADDRESS)) {
-            return "Địa chỉ" + content;
-        }
-        if (field.equals(Constants.FieldsCheckWords.FIELD_EDUCATION)) {
-            return "Học vấn" + content;
-        }
-        if (field.equals(Constants.FieldsCheckWords.FIELD_FAVORITE)) {
-            return "Sở thích" + content;
-        }
-        if (field.equals(Constants.FieldsCheckWords.FIELD_CONTENT)
-                || field.equals(Constants.FieldsCheckWords.FIELD_DESCRIPTION)) {
-            return "Nội dung" + content;
-        }
-        if (field.equals(Constants.FieldsCheckWords.FIELD_GROUP_NAME)) {
-            return "Tên nhóm" + content;
-        }
-        if (field.equals(Constants.FieldsCheckWords.FIELD_WORK)) {
-            return "Công việc" + content;
-        }
-        return field + content;
+        return switch (field) {
+            case Constants.FieldsCheckWords.FIELD_USER_NAME -> "Tên đăng nhập" + content;
+            case Constants.FieldsCheckWords.FIELD_FULL_NAME -> "Tên đầy đủ" + content;
+            case Constants.FieldsCheckWords.FIELD_EMAIL -> "Email" + content;
+            case Constants.FieldsCheckWords.FIELD_ADDRESS -> "Địa chỉ" + content;
+            case Constants.FieldsCheckWords.FIELD_EDUCATION -> "Học vấn" + content;
+            case Constants.FieldsCheckWords.FIELD_FAVORITE -> "Sở thích" + content;
+            case Constants.FieldsCheckWords.FIELD_CONTENT, Constants.FieldsCheckWords.FIELD_DESCRIPTION ->
+                    "Nội dung" + content;
+            case Constants.FieldsCheckWords.FIELD_GROUP_NAME -> "Tên nhóm" + content;
+            case Constants.FieldsCheckWords.FIELD_WORK -> "Công việc" + content;
+            default -> field + content;
+        };
     }
 
     public static String addEscapeOnSpecialCharactersWhenSearch(String input) {
@@ -133,14 +116,14 @@ public class Common {
 
     public static String formatDate(String date) {
         if (StringUtils.isEmpty(date)) {
-            return "";
+            return StringUtils.EMPTY;
         }
         try {
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
             return formatter.format(date);
         } catch (Exception e) {
             e.printStackTrace();
-            return "";
+            return StringUtils.EMPTY;
         }
     }
 

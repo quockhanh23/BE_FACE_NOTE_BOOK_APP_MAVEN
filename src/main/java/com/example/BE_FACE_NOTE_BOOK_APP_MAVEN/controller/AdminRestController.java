@@ -22,7 +22,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -56,12 +55,11 @@ public class AdminRestController {
         this.reportRepository = reportRepository;
     }
 
-    // Xem tất cả user
     @GetMapping("/adminAction")
-    public ResponseEntity<?> adminAction(@RequestParam Long idAdmin,
-                                         @RequestParam String type,
-                                         @SuppressWarnings("unused")
-                                         @RequestHeader("Authorization") String authorization) throws IOException {
+    public ResponseEntity<Object> adminAction(@RequestParam Long idAdmin,
+                                              @RequestParam String type,
+                                              @SuppressWarnings("unused")
+                                              @RequestHeader("Authorization") String authorization) {
         if ("user".equals(type)) {
             List<User> users = userService.findAllRoleUser();
             List<UserDTO> userDTOList = userService.copyListDTO(users);
@@ -92,9 +90,9 @@ public class AdminRestController {
     }
 
     @GetMapping("/getAllGroupPost")
-    public ResponseEntity<?> getAllGroupPost(@RequestParam Long idGroup, @RequestParam Long idAdmin,
-                                             @SuppressWarnings("unused")
-                                             @RequestHeader("Authorization") String authorization) {
+    public ResponseEntity<Object> getAllGroupPost(@RequestParam Long idGroup, @RequestParam Long idAdmin,
+                                                  @SuppressWarnings("unused")
+                                                  @RequestHeader("Authorization") String authorization) {
         List<GroupPost> list = groupPostRepository.findAllByTheGroupId(idGroup);
         List<GroupPostDTO> groupPostDTOList = new ArrayList<>();
         for (GroupPost groupPost : list) {
@@ -108,40 +106,31 @@ public class AdminRestController {
     }
 
     @GetMapping("/findById")
-    public ResponseEntity<?> findById(@RequestParam Long idUser) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> findById(@RequestParam Long idUser) {
+        User user = userService.checkExistUser(idUser);
         UserDTO userDTO = new UserDTO();
-        BeanUtils.copyProperties(userOptional.get(), userDTO);
+        BeanUtils.copyProperties(user, userDTO);
         List<ReportViolations> violations = reportRepository
-                .findAllByIdViolateAndType(userOptional.get().getId(), Constants.REPOST_TYPE_USER);
+                .findAllByIdViolateAndType(user.getId(), Constants.REPOST_TYPE_USER);
         userDTO.setNumberRepost(violations.size());
         return new ResponseEntity<>(userDTO, HttpStatus.OK);
     }
 
-    // Cấm user, kích hoạt tài khoản
     @DeleteMapping("/actionUser")
-    public ResponseEntity<?> actionUser(@RequestParam Long idAdmin,
-                                        @RequestParam Long idUser,
-                                        @RequestParam String type,
-                                        @SuppressWarnings("unused")
-                                        @RequestHeader("Authorization") String authorization) {
-        Optional<User> optionalUser = userService.findById(idUser);
-        if (optionalUser.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> actionUser(@RequestParam Long idAdmin,
+                                             @RequestParam Long idUser,
+                                             @RequestParam String type,
+                                             @SuppressWarnings("unused")
+                                             @RequestHeader("Authorization") String authorization) {
+        User user = userService.checkExistUser(idUser);
         if ("baned".equals(type)) {
-            optionalUser.get().setStatus(Constants.STATUS_BANED);
-            userService.save(optionalUser.get());
+            user.setStatus(Constants.STATUS_BANED);
+            userService.save(user);
             return new ResponseEntity<>(HttpStatus.OK);
         }
         if ("active".equals(type)) {
-            optionalUser.get().setStatus(Constants.STATUS_ACTIVE);
-            userService.save(optionalUser.get());
+            user.setStatus(Constants.STATUS_ACTIVE);
+            userService.save(user);
             return new ResponseEntity<>(HttpStatus.OK);
         }
         return new ResponseEntity<>(new ResponseNotification(HttpStatus.BAD_REQUEST.toString(),
@@ -149,14 +138,13 @@ public class AdminRestController {
                 HttpStatus.BAD_REQUEST);
     }
 
-    // Xoá bài viết trong database, khóa bài viết
     @DeleteMapping("/actionPost")
-    public ResponseEntity<?> actionPost(@RequestParam Long idAdmin,
-                                        @RequestParam Long idPost,
-                                        @RequestParam String type,
-                                        // Sử dụng param này bên Aspect
-                                        @SuppressWarnings("unused")
-                                        @RequestHeader("Authorization") String authorization) {
+    public ResponseEntity<Object> actionPost(@RequestParam Long idAdmin,
+                                             @RequestParam Long idPost,
+                                             @RequestParam String type,
+                                             // Sử dụng param này bên Aspect
+                                             @SuppressWarnings("unused")
+                                             @RequestHeader("Authorization") String authorization) {
         Optional<Post2> postOptional = postService.findById(idPost);
         if (postOptional.isEmpty()) {
             return new ResponseEntity<>(ResponseNotification.
@@ -177,10 +165,10 @@ public class AdminRestController {
     }
 
     @GetMapping("/searchAllPeople")
-    public ResponseEntity<?> searchAllPeople(@RequestParam Long idUser,
-                                             @RequestParam(required = false) String searchText,
-                                             @SuppressWarnings("unused")
-                                             @RequestHeader("Authorization") String authorization) {
+    public ResponseEntity<Object> searchAllPeople(@RequestParam Long idUser,
+                                                  @RequestParam(required = false) String searchText,
+                                                  @SuppressWarnings("unused")
+                                                  @RequestHeader("Authorization") String authorization) {
         searchText = Common.addEscapeOnSpecialCharactersWhenSearch(searchText);
         List<User> users = userService.findAllByEmailOrUsername(searchText);
         List<UserDTO> userDTOList = userService.copyListDTO(users);

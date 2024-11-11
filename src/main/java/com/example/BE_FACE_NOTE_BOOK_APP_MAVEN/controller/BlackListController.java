@@ -40,9 +40,8 @@ public class BlackListController {
         this.userService = userService;
     }
 
-    // Danh sách những người đã chặn
     @GetMapping("/listBlockedByUser")
-    public ResponseEntity<?> listBlockedByUser(@RequestParam Long idUserLogin) {
+    public ResponseEntity<Object> listBlockedByUser(@RequestParam Long idUserLogin) {
         List<BlackList> blackLists = blackListService.listBlockedByIdUser(idUserLogin);
         List<UserBlackListDTO> userBlackListDTOS = new ArrayList<>();
         if (!CollectionUtils.isEmpty(blackLists)) {
@@ -57,9 +56,8 @@ public class BlackListController {
         return new ResponseEntity<>(userBlackListDTOS, HttpStatus.OK);
     }
 
-    // Chặn 1 người
     @DeleteMapping("/block")
-    public ResponseEntity<?> block(@RequestParam Long idUserLogin, @RequestParam Long idUserBlock) {
+    public ResponseEntity<Object> block(@RequestParam Long idUserLogin, @RequestParam Long idUserBlock) {
         try {
             Optional<User> userLogin = this.userService.findById(idUserLogin);
             if (userLogin.isEmpty()) {
@@ -71,14 +69,15 @@ public class BlackListController {
                 return new ResponseEntity<>(ResponseNotification.
                         responseMessage(Constants.IdCheck.ID_USER, idUserBlock), HttpStatus.NOT_FOUND);
             }
-            Optional<BlackList> blackListOptional = blackListService.findBlock(userLogin.get().getId(), userBlock.get().getId());
+            Optional<BlackList> blackListOptional = blackListService.findBlock
+                    (userLogin.get().getId(), userBlock.get().getId());
             if (blackListOptional.isEmpty()) {
                 BlackList blackList = new BlackList();
                 blackListService.createDefault(blackList, idUserLogin, idUserBlock, Constants.CREATE);
             } else {
                 blackListOptional.get().setEditAt(new Date());
                 blackListOptional.get().setStatus(Constants.BLOCKED);
-                blackListService.create(blackListOptional.get());
+                blackListService.saveToBlackList(blackListOptional.get());
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -86,9 +85,8 @@ public class BlackListController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    // Bỏ chặn
     @DeleteMapping("/unBlock")
-    public ResponseEntity<?> unBlock(@RequestParam Long idUserLogin, @RequestParam Long idUserBlock) {
+    public ResponseEntity<Object> unBlock(@RequestParam Long idUserLogin, @RequestParam Long idUserBlock) {
         try {
             Optional<User> userOptional = this.userService.findById(idUserLogin);
             if (userOptional.isEmpty()) {

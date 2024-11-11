@@ -1,5 +1,8 @@
 package com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.common;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public class Constants {
 
     public static class DataField {
@@ -14,7 +17,6 @@ public class Constants {
 
     public static class IdCheck {
         public static final String ID_ADMIN = "idAdmin";
-
         public static final String ID_USER = "idUser";
         public static final String ID_POST = "idPost";
         public static final String ID_COMMENT = "idComment";

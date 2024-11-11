@@ -26,17 +26,17 @@ public class ComplaintsController {
     }
 
     @GetMapping("/getAllByUserId")
-    public ResponseEntity<?> getAllByUserId(@RequestParam Long idUser) {
+    public ResponseEntity<Object> getAllByUserId(@RequestParam Long idUser) {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @DeleteMapping("/deleteComp")
-    public ResponseEntity<?> deleteComplaints(@RequestParam Long idUser) {
+    public ResponseEntity<Object> deleteComplaints(@RequestParam Long idUser) {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping("/save")
-    public ResponseEntity<?> saveComplaints(@RequestBody UserComplaints userComplaints) {
+    public ResponseEntity<Object> saveComplaints(@RequestBody UserComplaints userComplaints) {
         userComplaints.setCreatedAt(new Date());
         userComplaints.setStatus("");
         userComplaintsService.save(userComplaints);

@@ -33,33 +33,31 @@ public class FollowWatchingController {
     }
 
     @GetMapping("/getListFollowByIdUser")
-    public ResponseEntity<?> getListFollowByIdUser(@RequestParam Long idUser) {
+    public ResponseEntity<Object> getListFollowByIdUser(@RequestParam Long idUser) {
         List<UserDTO> userList = userService.filterUser(idUser, Constants.FollowPeople.FOLLOW);
         return new ResponseEntity<>(userList, HttpStatus.OK);
     }
 
     @GetMapping("/getListWatchingByIdUser")
-    public ResponseEntity<?> getListWatchingByIdUser(@RequestParam Long idUser) {
+    public ResponseEntity<Object> getListWatchingByIdUser(@RequestParam Long idUser) {
         List<UserDTO> userList = userService.filterUser(idUser, Constants.FollowPeople.WATCHING);
         return new ResponseEntity<>(userList, HttpStatus.OK);
     }
 
-    // Theo dõi
     @GetMapping("/follow")
-    public ResponseEntity<?> createFollow(@RequestParam Long idUserLogin, @RequestParam Long idUserFollow) {
+    public ResponseEntity<Object> createFollow(@RequestParam Long idUserLogin, @RequestParam Long idUserFollow) {
         followWatchingService.createFollow(idUserLogin, idUserFollow);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    // Bỏ theo dõi
     @GetMapping("/unFollow")
-    public ResponseEntity<?> unFollow(@RequestParam Long idUserLogin, @RequestParam Long idUserFollow) {
+    public ResponseEntity<Object> unFollow(@RequestParam Long idUserLogin, @RequestParam Long idUserFollow) {
         followWatchingService.unFollow(idUserLogin, idUserFollow);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/getOne")
-    public ResponseEntity<?> getOne(@RequestParam Long idUserLogin, @RequestParam Long idUserFollow) {
+    public ResponseEntity<Object> getOne(@RequestParam Long idUserLogin, @RequestParam Long idUserFollow) {
         Object user = followWatchingService.checkUserHadFollow(idUserLogin, idUserFollow);
         if (Objects.nonNull(user)) {
             return new ResponseEntity<>(user, HttpStatus.OK);

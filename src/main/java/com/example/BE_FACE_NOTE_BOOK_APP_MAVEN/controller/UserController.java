@@ -8,9 +8,11 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.dto.*;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.exeption.InvalidException;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.jwt.JWTService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.jwt.JwtResponse;
-import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.*;
+import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.Image;
+import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.Role;
+import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.User;
+import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.VerificationToken;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification;
-import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.LastUserLoginRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.VerificationTokenRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.EmailService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.ImageService;
@@ -60,8 +62,6 @@ public class UserController {
 
     private final PasswordEncoder passwordEncoder;
 
-    private final LastUserLoginRepository lastUserLoginRepository;
-
     private final ModelMapper modelMapper;
 
     private final ImageService imageService;
@@ -77,7 +77,6 @@ public class UserController {
                           UserService userService,
                           RoleService roleService,
                           PasswordEncoder passwordEncoder,
-                          LastUserLoginRepository lastUserLoginRepository,
                           ModelMapper modelMapper,
                           ImageService imageService,
                           EmailService emailService,
@@ -88,7 +87,6 @@ public class UserController {
         this.userService = userService;
         this.roleService = roleService;
         this.passwordEncoder = passwordEncoder;
-        this.lastUserLoginRepository = lastUserLoginRepository;
         this.modelMapper = modelMapper;
         this.imageService = imageService;
         this.emailService = emailService;
@@ -96,49 +94,19 @@ public class UserController {
     }
 
     @GetMapping("/saveHistoryLogin")
-    public ResponseEntity<?> saveHistoryLogin(@RequestParam Long idUserLogin) {
+    public ResponseEntity<Object> saveHistoryLogin(@RequestParam Long idUserLogin) {
         String ipAddress = request.getRemoteAddr();
-        try {
-            Optional<User> userOptional = userService.findById(idUserLogin);
-            if (userOptional.isEmpty()) {
-                return new ResponseEntity<>(ResponseNotification.
-                        responseMessage(Constants.IdCheck.ID_USER, idUserLogin), HttpStatus.NOT_FOUND);
-            }
-            LastUserLogin lastUserLogin = lastUserLoginRepository.findByIdUser(userOptional.get().getId());
-            if (Objects.nonNull(lastUserLogin)) {
-                lastUserLogin.setIdUser(userOptional.get().getId());
-                lastUserLogin.setLoginTime(new Date());
-                lastUserLogin.setUserName(userOptional.get().getUsername());
-                lastUserLogin.setAvatar(userOptional.get().getAvatar());
-                lastUserLogin.setFullName(userOptional.get().getFullName());
-                lastUserLogin.setIpAddress(ipAddress);
-                lastUserLoginRepository.save(lastUserLogin);
-            } else {
-                LastUserLogin userLogin = new LastUserLogin();
-                userLogin.setIdUser(userOptional.get().getId());
-                userLogin.setUserName(userOptional.get().getUsername());
-                userLogin.setLoginTime(new Date());
-                userLogin.setAvatar(userOptional.get().getAvatar());
-                userLogin.setFullName(userOptional.get().getFullName());
-                userLogin.setIpAddress(ipAddress);
-                lastUserLoginRepository.save(userLogin);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        userService.saveHistoryLogin(idUserLogin, ipAddress);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    // Lịch sử đăng nhập local
     @GetMapping("/historyLogin")
-    public ResponseEntity<?> getListHistoryLogin() {
-        List<LastUserLogin> userLogins = lastUserLoginRepository.historyLogin();
-        if (CollectionUtils.isEmpty(userLogins)) userLogins = new ArrayList<>();
-        return new ResponseEntity<>(userLogins, HttpStatus.OK);
+    public ResponseEntity<Object> getListHistoryLogin() {
+        return new ResponseEntity<>(userService.getListHistoryLogin(), HttpStatus.OK);
     }
 
     @GetMapping("/searchByFullNameOrEmail")
-    public ResponseEntity<?> searchByFullNameOrEmail(String search, @RequestParam Long idUserLogin) {
+    public ResponseEntity<Object> searchByFullNameOrEmail(String search, @RequestParam Long idUserLogin) {
         List<UserBlackListDTO> list = new ArrayList<>();
         if (!StringUtils.isEmpty(search)) {
             List<User> userList = userService.findAllByEmailAndFullName(search, idUserLogin);
@@ -155,7 +123,7 @@ public class UserController {
     }
 
     @GetMapping("/searchAll")
-    public ResponseEntity<?> searchAll(String search, @RequestParam Long idUserLogin) {
+    public ResponseEntity<Object> searchAll(String search, @RequestParam Long idUserLogin) {
         search = Common.addEscapeOnSpecialCharactersWhenSearch(search);
         List<UserSearchDTO> list = new ArrayList<>();
         List<User> userList = userService.searchAll(search, idUserLogin);
@@ -172,7 +140,7 @@ public class UserController {
 
     // Tìm kiếm bạn bè của người dùng
     @GetMapping("/searchFriend")
-    public ResponseEntity<?> searchFriend(@RequestParam String search, @RequestParam Long idUser) {
+    public ResponseEntity<Object> searchFriend(@RequestParam String search, @RequestParam Long idUser) {
         search = Common.addEscapeOnSpecialCharactersWhenSearch(search);
         List<UserDTO> userDTOList = userService.listFriend(idUser);
         List<User> friend = userService.searchFriend(search, idUser);
@@ -187,13 +155,13 @@ public class UserController {
     // Đăng kí tài khoản
     @Transactional()
     @PostMapping("/register")
-    public ResponseEntity<?> createUser(@Valid @RequestBody User user, BindingResult bindingResult) {
+    public ResponseEntity<Object> createUser(@Valid @RequestBody User user, BindingResult bindingResult) {
         if (bindingResult.hasFieldErrors()) {
             Map<String, String> fieldError = new HashMap<>();
             for (FieldError error : bindingResult.getFieldErrors()) {
                 fieldError.put(error.getField(), error.getDefaultMessage());
             }
-            throw new InvalidException("Không hợp lệ", fieldError);
+            throw new InvalidException(MessageResponse.IN_VALID, fieldError);
         }
         Common.handlerWordsLanguage(user);
         if (!Common.checkRegex(user.getUsername(), Regex.CHECK_USER_NAME)) {
@@ -240,7 +208,7 @@ public class UserController {
     // Lấy lại mật khẩu
     @Transactional
     @PostMapping("/passwordRetrieval")
-    public ResponseEntity<?> passwordRetrieval(@RequestBody PasswordRetrieval passwordRetrieval,
+    public ResponseEntity<Object> passwordRetrieval(@RequestBody PasswordRetrieval passwordRetrieval,
                                                @RequestHeader("Authorization") String authorization) {
         if (StringUtils.isEmpty(passwordRetrieval.getUserName()) || StringUtils.isEmpty(passwordRetrieval.getEmail())) {
             return new ResponseEntity<>(new ResponseNotification(HttpStatus.BAD_REQUEST.toString(),
@@ -278,21 +246,17 @@ public class UserController {
     // Đổi mật khẩu
     @Transactional()
     @PostMapping("/matchPassword")
-    public ResponseEntity<?> matchPassword(@RequestBody UserChangePassword userChangePassword,
+    public ResponseEntity<Object> matchPassword(@RequestBody UserChangePassword userChangePassword,
                                            @RequestParam Long idUser,
                                            @SuppressWarnings("unused")
                                            @RequestHeader("Authorization") String authorization) {
         try {
-            Optional<User> userOptional = userService.findById(idUser);
-            if (userOptional.isEmpty()) {
-                return new ResponseEntity<>(ResponseNotification.
-                        responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-            }
-            if (passwordEncoder.matches(userChangePassword.getPasswordOld(), userOptional.get().getPassword())) {
+            User user = userService.checkExistUser(idUser);
+            if (passwordEncoder.matches(userChangePassword.getPasswordOld(), user.getPassword())) {
                 if (userChangePassword.getPasswordNew().equals(userChangePassword.getConfirmPasswordNew())) {
-                    userOptional.get().setPassword(passwordEncoder.encode(userChangePassword.getPasswordNew()));
-                    userService.save(userOptional.get());
-                    return new ResponseEntity<>(userOptional.get(), HttpStatus.OK);
+                    user.setPassword(passwordEncoder.encode(userChangePassword.getPasswordNew()));
+                    userService.save(user);
+                    return new ResponseEntity<>(user, HttpStatus.OK);
                 } else {
                     return new ResponseEntity<>(new ResponseNotification(HttpStatus.BAD_REQUEST.toString(),
                             MessageResponse.RegisterMessage.WRONG_CONFIRM_PASSWORD),
@@ -311,7 +275,7 @@ public class UserController {
 
     // Đăng nhập
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User user) {
+    public ResponseEntity<Object> login(@RequestBody User user) {
         try {
             List<User> userBannedList = userService.findAllUserBanned();
             if (!CollectionUtils.isEmpty(userBannedList)) {
@@ -363,15 +327,11 @@ public class UserController {
     }
 
     @GetMapping("/users/{idUser}")
-    public ResponseEntity<?> getProfile(@PathVariable Long idUser) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> getProfile(@PathVariable Long idUser) {
+        User user = userService.checkExistUser(idUser);
         List<User> userBannedList = userService.findAllUserBanned();
         if (!CollectionUtils.isEmpty(userBannedList)) {
-            if (userBannedList.stream().anyMatch(item -> item.getUsername().equals(userOptional.get().getUsername()))) {
+            if (userBannedList.stream().anyMatch(item -> item.getUsername().equals(user.getUsername()))) {
                 return new ResponseEntity<>(new ResponseNotification(HttpStatus.BAD_REQUEST.toString(),
                         MessageResponse.LoginMessage.USER_HAS_LOCK),
                         HttpStatus.BAD_REQUEST);
@@ -382,11 +342,8 @@ public class UserController {
     }
 
     @GetMapping("/findNameUserById/{idUser}")
-    public ResponseEntity<?> findNameUserById(@PathVariable Long idUser) {
-        if (userService.checkUser(idUser) == null) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Object> findNameUserById(@PathVariable Long idUser) {
+        userService.checkExistUser(idUser);
         NameDTO nameDTO = modelMapper.map(userService.checkUser(idUser), NameDTO.class);
         return new ResponseEntity<>(nameDTO, HttpStatus.OK);
     }
@@ -394,7 +351,7 @@ public class UserController {
     // Sửa thông tin người dùng
     @Transactional()
     @PutMapping("/users/{idUser}")
-    public ResponseEntity<?> updateUserProfile(@PathVariable Long idUser,
+    public ResponseEntity<Object> updateUserProfile(@PathVariable Long idUser,
                                                @RequestBody User user,
                                                @SuppressWarnings("unused")
                                                @RequestHeader("Authorization") String authorization) {
@@ -407,11 +364,7 @@ public class UserController {
                     MessageResponse.WRONG_NUMBER_PHONE), HttpStatus.BAD_REQUEST);
         }
         Common.handlerWordsLanguage(user);
-        Optional<User> userOptional = this.userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+        User userOptional = userService.checkExistUser(idUser);
         String avatarName = "";
         boolean checkCover = false;
         List<ListAvatarDefault> listAvatarDefaults = userService.listAvatar();
@@ -423,10 +376,10 @@ public class UserController {
                 checkCover = true;
             }
         }
-        if (avatarName.equals("")) {
+        if (StringUtils.isEmpty(avatarName)) {
             if (StringUtils.isNotEmpty(user.getAvatar())
-                    && !user.getAvatar().equalsIgnoreCase(userOptional.get().getAvatar())) {
-                userOptional.get().setAvatar(user.getAvatar());
+                    && !user.getAvatar().equalsIgnoreCase(userOptional.getAvatar())) {
+                userOptional.setAvatar(user.getAvatar());
                 try {
                     Image image = imageService.createImageDefault(user.getAvatar(), user);
                     imageService.save(image);
@@ -436,58 +389,54 @@ public class UserController {
                 }
             }
         } else {
-            userOptional.get().setAvatar(avatarName);
+            userOptional.setAvatar(avatarName);
             userService.saveImageUserLogin(idUser, avatarName);
         }
         if (!StringUtils.isEmpty(user.getCover())
-                && !userOptional.get().getCover().equals(user.getCover())
+                && !userOptional.getCover().equals(user.getCover())
                 && !checkCover) {
-            userOptional.get().setCover(user.getCover());
+            userOptional.setCover(user.getCover());
             Image image = imageService.createImageDefault(user.getCover(), user);
             imageService.save(image);
         }
         if (!StringUtils.isEmpty(user.getGender())) {
-            userOptional.get().setGender(user.getGender());
+            userOptional.setGender(user.getGender());
         }
         if (user.getDateOfBirth() != null) {
-            userOptional.get().setDateOfBirth(user.getDateOfBirth());
+            userOptional.setDateOfBirth(user.getDateOfBirth());
         }
-        userOptional.get().setAddress(user.getAddress());
-        userOptional.get().setPhone(user.getPhone());
-        userOptional.get().setFavorite(user.getFavorite());
-        userOptional.get().setEducation(user.getEducation());
-        userService.save(userOptional.get());
-        return new ResponseEntity<>(userOptional.get(), HttpStatus.OK);
+        userOptional.setAddress(user.getAddress());
+        userOptional.setPhone(user.getPhone());
+        userOptional.setFavorite(user.getFavorite());
+        userOptional.setEducation(user.getEducation());
+        userService.save(userOptional);
+        return new ResponseEntity<>(userOptional, HttpStatus.OK);
     }
 
     @DeleteMapping("/changeStatusUser")
-    public ResponseEntity<?> changeStatusUser(@RequestParam Long idUser,
+    public ResponseEntity<Object> changeStatusUser(@RequestParam Long idUser,
                                               @RequestParam String type,
                                               @SuppressWarnings("unused")
                                               @RequestHeader("Authorization") String authorization) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         if ("active".equalsIgnoreCase(type)) {
-            if (userOptional.get().getStatus().equals(Constants.STATUS_ACTIVE)) {
+            if (user.getStatus().equals(Constants.STATUS_ACTIVE)) {
                 return new ResponseEntity<>(HttpStatus.OK);
             }
-            if (userOptional.get().getId().equals(idUser)) {
-                userOptional.get().setStatus(Constants.STATUS_ACTIVE);
-                userService.save(userOptional.get());
-                return new ResponseEntity<>(userOptional.get(), HttpStatus.OK);
+            if (user.getId().equals(idUser)) {
+                user.setStatus(Constants.STATUS_ACTIVE);
+                userService.save(user);
+                return new ResponseEntity<>(user, HttpStatus.OK);
             }
         }
         if ("lock".equalsIgnoreCase(type)) {
-            if (userOptional.get().getStatus().equals(Constants.STATUS_LOCK)) {
+            if (user.getStatus().equals(Constants.STATUS_LOCK)) {
                 return new ResponseEntity<>(HttpStatus.OK);
             }
-            if (userOptional.get().getId().equals(idUser)) {
-                userOptional.get().setStatus(Constants.STATUS_LOCK);
-                userService.save(userOptional.get());
-                return new ResponseEntity<>(userOptional.get(), HttpStatus.OK);
+            if (user.getId().equals(idUser)) {
+                user.setStatus(Constants.STATUS_LOCK);
+                userService.save(user);
+                return new ResponseEntity<>(user, HttpStatus.OK);
             }
         }
         return new ResponseEntity<>(new ResponseNotification(HttpStatus.BAD_REQUEST.toString(),
@@ -496,39 +445,35 @@ public class UserController {
     }
 
     @GetMapping("/listImageDefault")
-    public ResponseEntity<?> listImageDefault() {
+    public ResponseEntity<Object> listImageDefault() {
         return new ResponseEntity<>(userService.listAvatar(), HttpStatus.OK);
     }
 
     @DeleteMapping("/changeImage")
-    public ResponseEntity<?> changeImage(@RequestParam Long idUser,
+    public ResponseEntity<Object> changeImage(@RequestParam Long idUser,
                                          @RequestParam Long idImage,
                                          @RequestParam String type,
                                          @SuppressWarnings("unused")
                                          @RequestHeader("Authorization") String authorization) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         Optional<Image> imageOptional = imageService.findById(idImage);
         if (imageOptional.isEmpty()) {
             return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_IMAGE, idImage),
                     HttpStatus.NOT_FOUND);
         }
         if (Constants.AVATAR.equals(type)) {
-            userOptional.get().setAvatar(imageOptional.get().getLinkImage());
+            user.setAvatar(imageOptional.get().getLinkImage());
             userService.saveImageUserLogin(idUser, imageOptional.get().getLinkImage());
         }
         if (Constants.COVER.equals(type)) {
-            userOptional.get().setCover(imageOptional.get().getLinkImage());
+            user.setCover(imageOptional.get().getLinkImage());
         }
-        userService.save(userOptional.get());
+        userService.save(user);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @GetMapping("/removeToken")
-    public ResponseEntity<?> removeToken(@RequestParam Long idUserLogin) {
+    public ResponseEntity<Object> removeToken(@RequestParam Long idUserLogin) {
         if (idUserLogin == null) {
             return new ResponseEntity<>(HttpStatus.OK);
         }
