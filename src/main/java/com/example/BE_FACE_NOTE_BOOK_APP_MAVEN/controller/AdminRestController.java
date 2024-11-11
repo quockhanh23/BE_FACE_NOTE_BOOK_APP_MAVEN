@@ -109,15 +109,11 @@ public class AdminRestController {
 
     @GetMapping("/findById")
     public ResponseEntity<?> findById(@RequestParam Long idUser) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         UserDTO userDTO = new UserDTO();
-        BeanUtils.copyProperties(userOptional.get(), userDTO);
+        BeanUtils.copyProperties(user, userDTO);
         List<ReportViolations> violations = reportRepository
-                .findAllByIdViolateAndType(userOptional.get().getId(), Constants.REPOST_TYPE_USER);
+                .findAllByIdViolateAndType(user.getId(), Constants.REPOST_TYPE_USER);
         userDTO.setNumberRepost(violations.size());
         return new ResponseEntity<>(userDTO, HttpStatus.OK);
     }
@@ -129,19 +125,15 @@ public class AdminRestController {
                                         @RequestParam String type,
                                         @SuppressWarnings("unused")
                                         @RequestHeader("Authorization") String authorization) {
-        Optional<User> optionalUser = userService.findById(idUser);
-        if (optionalUser.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         if ("baned".equals(type)) {
-            optionalUser.get().setStatus(Constants.STATUS_BANED);
-            userService.save(optionalUser.get());
+            user.setStatus(Constants.STATUS_BANED);
+            userService.save(user);
             return new ResponseEntity<>(HttpStatus.OK);
         }
         if ("active".equals(type)) {
-            optionalUser.get().setStatus(Constants.STATUS_ACTIVE);
-            userService.save(optionalUser.get());
+            user.setStatus(Constants.STATUS_ACTIVE);
+            userService.save(user);
             return new ResponseEntity<>(HttpStatus.OK);
         }
         return new ResponseEntity<>(new ResponseNotification(HttpStatus.BAD_REQUEST.toString(),

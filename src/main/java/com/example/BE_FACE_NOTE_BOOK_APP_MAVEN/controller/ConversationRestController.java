@@ -64,17 +64,10 @@ public class ConversationRestController {
     @GetMapping("/createConversation")
     public ResponseEntity<?> createConversation(@RequestParam Long idSender,
                                                 @RequestParam Long idReceiver) {
-        Optional<User> userSender = userService.findById(idSender);
-        if (userSender.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_SENDER, idSender), HttpStatus.NOT_FOUND);
-        }
-        Optional<User> userReceiver = userService.findById(idReceiver);
-        if (userReceiver.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_RECEIVER, idReceiver), HttpStatus.NOT_FOUND);
-        }
-        List<Conversation> conversationList = conversationService.getConversationBySenderIdOrReceiverId(idSender, idReceiver);
+        User userSender = userService.checkExistUser(idSender);
+        User userReceiver = userService.checkExistUser(idReceiver);
+        List<Conversation> conversationList = conversationService
+                .getConversationBySenderIdOrReceiverId(idSender, idReceiver);
         if (!CollectionUtils.isEmpty(conversationList)) {
             for (Conversation conversation : conversationList) {
                 if ((conversation.getIdSender().getId().equals(idSender)
@@ -86,8 +79,8 @@ public class ConversationRestController {
             }
         }
         Conversation conversation = new Conversation();
-        conversation.setIdSender(userSender.get());
-        conversation.setIdReceiver(userReceiver.get());
+        conversation.setIdSender(userSender);
+        conversation.setIdReceiver(userReceiver);
         conversation.setCreateAt(new Date());
         conversationService.save(conversation);
         return new ResponseEntity<>(conversation, HttpStatus.OK);
@@ -107,11 +100,7 @@ public class ConversationRestController {
             return new ResponseEntity<>(ResponseNotification.
                     responseMessage(Constants.IdCheck.ID_CONVERSATION, idConversation), HttpStatus.NOT_FOUND);
         }
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+        userService.checkExistUser(idUser);
         ConversationDeleteTime conversationDeleteTime = new ConversationDeleteTime();
         conversationDeleteTime.setIdDelete(idUser);
         conversationDeleteTime.setIdConversation(idConversation);
@@ -129,12 +118,8 @@ public class ConversationRestController {
 
     @GetMapping("/myMessenger")
     public ResponseEntity<?> myMessenger(@RequestParam Long idUser) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
-        List<Conversation> conversations = conversationService.findAllByIdSender(userOptional.get().getId());
+        User user = userService.checkExistUser(idUser);
+        List<Conversation> conversations = conversationService.findAllByIdSender(user.getId());
         if (CollectionUtils.isEmpty(conversations)) {
             conversations = new ArrayList<>();
         }
@@ -160,11 +145,7 @@ public class ConversationRestController {
             return new ResponseEntity<>(ResponseNotification.
                     responseMessage(Constants.IdCheck.ID_CONVERSATION, idConversation), HttpStatus.NOT_FOUND);
         }
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+        userService.checkExistUser(idUser);
         List<Messenger> messengers = messengerService.findAllByConversationOrderById(conversation.get());
         if (CollectionUtils.isEmpty(messengers)) {
             messengers = new ArrayList<>();
@@ -182,18 +163,14 @@ public class ConversationRestController {
             return new ResponseEntity<>(ResponseNotification.
                     responseMessage(Constants.IdCheck.ID_CONVERSATION, idConversation), HttpStatus.NOT_FOUND);
         }
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         if (StringUtils.isEmpty(messenger.getContent()) && StringUtils.isEmpty(messenger.getImage())) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         messenger.setConversation(conversation.get());
-        if (!Objects.equals(messenger.getConversation().getIdSender().getId(), userOptional.get().getId())
-                && (messenger.getConversation().getIdReceiver().getId().equals(userOptional.get().getId()))) {
-            Messenger message = messengerService.createDefaultMessage(messenger, userOptional.get(),
+        if (!Objects.equals(messenger.getConversation().getIdSender().getId(), user.getId())
+                && (messenger.getConversation().getIdReceiver().getId().equals(user.getId()))) {
+            Messenger message = messengerService.createDefaultMessage(messenger, user,
                     Constants.RESPONSE, Constants.ConversationStatus.STATUS_TWO);
             messengerService.save(message);
             Notification notification = notificationService.createDefault(messenger.getConversation().getIdSender(),
@@ -203,9 +180,9 @@ public class ConversationRestController {
             notificationService.save(notification);
             return new ResponseEntity<>(messenger, HttpStatus.OK);
         }
-        if (!Objects.equals(messenger.getConversation().getIdReceiver().getId(), userOptional.get().getId())
-                && messenger.getConversation().getIdSender().getId().equals(userOptional.get().getId())) {
-            Messenger message = messengerService.createDefaultMessage(messenger, userOptional.get(),
+        if (!Objects.equals(messenger.getConversation().getIdReceiver().getId(), user.getId())
+                && messenger.getConversation().getIdSender().getId().equals(user.getId())) {
+            Messenger message = messengerService.createDefaultMessage(messenger, user,
                     Constants.REQUEST, Constants.ConversationStatus.STATUS_TWO);
             messengerService.save(message);
             Notification notification = notificationService.createDefault(messenger.getConversation().getIdReceiver(),
@@ -345,11 +322,7 @@ public class ConversationRestController {
     public ResponseEntity<?> deleteMessenger(@RequestParam Long idUser,
                                              @RequestParam Long idConversation,
                                              @RequestParam Long idMessenger) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+        userService.checkExistUser(idUser);
         Optional<Conversation> conversation = conversationService.findById(idConversation);
         if (conversation.isEmpty()) {
             return new ResponseEntity<>(ResponseNotification.

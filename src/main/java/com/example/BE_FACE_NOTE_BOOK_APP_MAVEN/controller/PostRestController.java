@@ -11,7 +11,6 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.*;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.*;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -237,38 +236,23 @@ public class PostRestController {
             return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_POST, idPost),
                     HttpStatus.NOT_FOUND);
         }
-        if ("like".equalsIgnoreCase(type)) {
-            List<LikePost> likePost = likePostService.findAllLikeByPostId(idPost);
-            if (!CollectionUtils.isEmpty(likePost)) {
-                postOptional.get().setNumberLike((long) likePost.size());
+        List<LikePost> likePost = new ArrayList<>();
+        List<DisLikePost> disLikePosts = new ArrayList<>();
+        List<IconHeart> iconHearts = new ArrayList<>();
+        switch (type) {
+            case "like" -> likePost = likePostService.findAllLikeByPostId(idPost);
+            case "disLike" -> disLikePosts = disLikePostService.findAllDisLikeByPostId(idPost);
+            case "heart" -> iconHearts = iconHeartService.findAllHeartByPostId(idPost);
+            default -> {
+                likePost = likePostService.findAllLikeByPostId(idPost);
+                disLikePosts = disLikePostService.findAllDisLikeByPostId(idPost);
+                iconHearts = iconHeartService.findAllHeartByPostId(idPost);
             }
         }
-        if ("disLike".equalsIgnoreCase(type)) {
-            List<DisLikePost> disLikePosts = disLikePostService.findAllDisLikeByPostId(idPost);
-            if (!CollectionUtils.isEmpty(disLikePosts)) {
-                postOptional.get().setNumberDisLike((long) disLikePosts.size());
-            }
-        }
-        if ("heart".equalsIgnoreCase(type)) {
-            List<IconHeart> iconHearts = iconHeartService.findAllHeartByPostId(idPost);
-            if (!CollectionUtils.isEmpty(iconHearts)) {
-                postOptional.get().setIconHeart((long) iconHearts.size());
-            }
-        }
-        if ("all".equalsIgnoreCase(type)) {
-            List<LikePost> likePost = likePostService.findAllLikeByPostId(idPost);
-            if (!CollectionUtils.isEmpty(likePost)) {
-                postOptional.get().setNumberLike((long) likePost.size());
-            }
-            List<DisLikePost> disLikePosts = disLikePostService.findAllDisLikeByPostId(idPost);
-            if (!CollectionUtils.isEmpty(disLikePosts)) {
-                postOptional.get().setNumberDisLike((long) disLikePosts.size());
-            }
-            List<IconHeart> iconHearts = iconHeartService.findAllHeartByPostId(idPost);
-            if (!CollectionUtils.isEmpty(iconHearts)) {
-                postOptional.get().setIconHeart((long) iconHearts.size());
-            }
-        }
+        postOptional.get().setNumberLike((long) likePost.size());
+        postOptional.get().setNumberDisLike((long) disLikePosts.size());
+        postOptional.get().setIconHeart((long) iconHearts.size());
+        postOptional.get().setIconHeart((long) iconHearts.size());
         postService.save(postOptional.get());
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -290,24 +274,19 @@ public class PostRestController {
             return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
                     HttpStatus.NOT_FOUND);
         }
-        if ("Public".equals(type)) {
-            postOptional.get().setStatus(Constants.STATUS_PUBLIC);
+        switch (type) {
+            case "Public" -> postOptional.get().setStatus(Constants.STATUS_PUBLIC);
+            case "Private" -> postOptional.get().setStatus(Constants.STATUS_PRIVATE);
+            case "Delete" -> {
+                postOptional.get().setStatus(Constants.STATUS_DELETE);
+                postOptional.get().setDelete(true);
+            }
+            default -> {
+                return new ResponseEntity<>( "Param is null", HttpStatus.NOT_FOUND);
+            }
         }
-        if ("Private".equals(type)) {
-            postOptional.get().setStatus(Constants.STATUS_PRIVATE);
-        }
-        if ("Delete".equals(type)) {
-            postOptional.get().setStatus(Constants.STATUS_DELETE);
-            postOptional.get().setDelete(true);
-        }
-        if (!StringUtils.isEmpty(type) && ("Public".equals(type) || "Private".equals(type) || "Delete".equals(type))) {
-            postService.save(postOptional.get());
-            return new ResponseEntity<>(HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(new ResponseNotification(HttpStatus.BAD_REQUEST.toString(),
-                    MessageResponse.IN_VALID, MessageResponse.DESCRIPTION),
-                    HttpStatus.BAD_REQUEST);
-        }
+        postService.save(postOptional.get());
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Transactional

@@ -78,7 +78,7 @@ public class BlackListController {
             } else {
                 blackListOptional.get().setEditAt(new Date());
                 blackListOptional.get().setStatus(Constants.BLOCKED);
-                blackListService.create(blackListOptional.get());
+                blackListService.saveToBlackList(blackListOptional.get());
             }
         } catch (Exception e) {
             e.printStackTrace();

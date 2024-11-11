@@ -121,7 +121,7 @@ public class CommentRestController {
             return new ResponseEntity<>(ResponseNotification.
                     responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
         }
-        commentService.create(comment);
+        commentService.createDefault(comment);
         comment.setPost(post2Optional.get());
         comment.setUser(userOptional.get());
         commentService.save(comment);

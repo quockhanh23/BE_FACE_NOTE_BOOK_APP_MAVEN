@@ -16,7 +16,7 @@ public interface CommentService extends GeneralService<Comment> {
 
     CommentDTO mapper(Comment comment);
 
-    void create(Comment comment);
+    void createDefault(Comment comment);
 
     void saveAll(List<Comment> comments);
 

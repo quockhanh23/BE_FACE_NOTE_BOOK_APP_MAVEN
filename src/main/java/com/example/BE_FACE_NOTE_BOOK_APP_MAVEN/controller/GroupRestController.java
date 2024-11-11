@@ -8,7 +8,6 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.GroupParticipantRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.*;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
@@ -135,11 +134,7 @@ public class GroupRestController {
     // Tạo nhóm mới
     @PostMapping("/createGroup")
     public ResponseEntity<?> createGroup(@RequestBody TheGroup theGroup, @RequestParam Long idUser) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         if (StringUtils.isEmpty(theGroup.getGroupName())) {
             return new ResponseEntity<>(ResponseNotification.responseMessageDataField("groupName"),
                     HttpStatus.BAD_REQUEST);
@@ -149,8 +144,8 @@ public class GroupRestController {
                     HttpStatus.BAD_REQUEST);
         }
         Common.handlerWordsLanguage(theGroup);
-        theGroup.setCreateBy(userOptional.get().getFullName());
-        theGroup.setIdUserCreate(userOptional.get().getId());
+        theGroup.setCreateBy(user.getFullName());
+        theGroup.setIdUserCreate(user.getId());
         theGroup.setCreateAt(new Date());
         theGroup.setNumberUser(0L);
         theGroup.setStatus(Constants.STATUS_PUBLIC);
@@ -162,13 +157,13 @@ public class GroupRestController {
         }
         theGroupService.save(theGroup);
         ImageGroup coverGroup = imageGroupService
-                .createImageGroupDefault(theGroup.getCoverGroup(), theGroup.getId(), userOptional.get().getId());
+                .createImageGroupDefault(theGroup.getCoverGroup(), theGroup.getId(), user.getId());
         ImageGroup avatarGroup = imageGroupService
-                .createImageGroupDefault(theGroup.getAvatarGroup(), theGroup.getId(), userOptional.get().getId());
+                .createImageGroupDefault(theGroup.getAvatarGroup(), theGroup.getId(), user.getId());
         imageGroupService.save(coverGroup);
         imageGroupService.save(avatarGroup);
         GroupParticipant groupParticipant = groupParticipantService
-                .createDefault(theGroup, userOptional.get(), Constants.GroupStatus.MANAGEMENT);
+                .createDefault(theGroup, user, Constants.GroupStatus.MANAGEMENT);
         groupParticipantService.save(groupParticipant);
         return new ResponseEntity<>(theGroup, HttpStatus.OK);
     }
@@ -183,25 +178,21 @@ public class GroupRestController {
             return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_GROUP, idGroup),
                     HttpStatus.NOT_FOUND);
         }
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         if ("lock".equals(type)) {
             if (userService.checkAdmin(idUser).toString().substring(17, 27).equals(Constants.Roles.ROLE_ADMIN)) {
                 theGroupOptional.get().setStatus(Constants.STATUS_LOCK);
                 theGroupService.save(theGroupOptional.get());
                 return new ResponseEntity<>(HttpStatus.OK);
             }
-            if (theGroupOptional.get().getIdUserCreate().equals(userOptional.get().getId())) {
+            if (theGroupOptional.get().getIdUserCreate().equals(user.getId())) {
                 theGroupOptional.get().setStatus(Constants.STATUS_DELETE);
                 theGroupService.save(theGroupOptional.get());
                 return new ResponseEntity<>(HttpStatus.OK);
             }
         }
         if ("delete".equals(type)) {
-            if (theGroupOptional.get().getIdUserCreate().equals(userOptional.get().getId())) {
+            if (theGroupOptional.get().getIdUserCreate().equals(user.getId())) {
                 theGroupOptional.get().setStatus(Constants.STATUS_DELETE);
                 theGroupService.save(theGroupOptional.get());
                 return new ResponseEntity<>(HttpStatus.OK);
@@ -220,17 +211,8 @@ public class GroupRestController {
             return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_THE_GROUP, idTheGroup),
                     HttpStatus.NOT_FOUND);
         }
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
-        Optional<User> optionalUser = userService.findById(theGroupOptional.get().getIdUserCreate());
-        if (optionalUser.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER,
-                    theGroupOptional.get().getIdUserCreate()),
-                    HttpStatus.NOT_FOUND);
-        }
+        User userSendRequest = userService.checkExistUser(idUser);
+        User owner = userService.checkExistUser(theGroupOptional.get().getIdUserCreate());
         Iterable<GroupParticipant> groupParticipants = groupParticipantService.findAll();
         List<GroupParticipant> groupParticipantList = (List<GroupParticipant>) groupParticipants;
         for (GroupParticipant groupParticipant : groupParticipantList) {
@@ -242,9 +224,9 @@ public class GroupRestController {
             }
         }
         GroupParticipant groupParticipant = groupParticipantService
-                .createDefault(theGroupOptional.get(), userOptional.get(), Constants.GroupStatus.STATUS_GROUP_PENDING);
+                .createDefault(theGroupOptional.get(), userSendRequest, Constants.GroupStatus.STATUS_GROUP_PENDING);
         groupParticipantService.save(groupParticipant);
-        Notification notification = notificationService.createDefault(optionalUser.get(), userOptional.get(),
+        Notification notification = notificationService.createDefault(owner, userSendRequest,
                 Constants.Notification.TITLE_REQUEST_JOIN_GROUP, groupParticipant.getId(),
                 Constants.Notification.TYPE_GROUP);
         notificationService.save(notification);
@@ -257,25 +239,17 @@ public class GroupRestController {
                                              @RequestParam Long idUser,
                                              @RequestParam Long idGroup,
                                              @RequestParam String type) {
-        Optional<User> userOptional = userService.findById(idAdminGroup);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_ADMIN_GROUP, idAdminGroup), HttpStatus.NOT_FOUND);
-        }
+        User adminGroup = userService.checkExistUser(idAdminGroup);
         Optional<GroupParticipant> groupParticipant = groupParticipantService.findByUserIdAndTheGroupId(idUser, idGroup);
         if (groupParticipant.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        Optional<User> user = userService.findById(idUser);
-        if (user.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         if (Constants.ACCEPT.equals(type)) {
-            if (userOptional.get().getId().equals(groupParticipant.get().getTheGroup().getIdUserCreate())) {
+            if (adminGroup.getId().equals(groupParticipant.get().getTheGroup().getIdUserCreate())) {
                 groupParticipant.get().setStatus(Constants.GroupStatus.STATUS_GROUP_APPROVED);
                 groupParticipantService.save(groupParticipant.get());
-                Notification notification = notificationService.createDefault(user.get(), userOptional.get(),
+                Notification notification = notificationService.createDefault(user, adminGroup,
                         Constants.Notification.TITLE_APPROVE_JOIN_GROUP, groupParticipant.get().getId(),
                         Constants.Notification.TYPE_GROUP);
                 notificationService.save(notification);
@@ -283,10 +257,10 @@ public class GroupRestController {
             }
         }
         if (Constants.REJECT.equals(type)) {
-            if (userOptional.get().getId().equals(groupParticipant.get().getTheGroup().getIdUserCreate())) {
+            if (adminGroup.getId().equals(groupParticipant.get().getTheGroup().getIdUserCreate())) {
                 groupParticipant.get().setStatus(Constants.GroupStatus.STATUS_GROUP_REFUSE);
                 groupParticipantService.save(groupParticipant.get());
-                Notification notification = notificationService.createDefault(user.get(), userOptional.get(),
+                Notification notification = notificationService.createDefault(user, adminGroup,
                         Constants.Notification.TITLE_REJECT_JOIN_GROUP, groupParticipant.get().getId(),
                         Constants.Notification.TYPE_GROUP);
                 notificationService.save(notification);
@@ -312,11 +286,7 @@ public class GroupRestController {
     public ResponseEntity<?> actionUserUpPost(@RequestParam Long idAdminGroup,
                                               @RequestParam Long idGroupPost,
                                               @RequestParam String type) {
-        Optional<User> userOptional = userService.findById(idAdminGroup);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_ADMIN_GROUP, idAdminGroup), HttpStatus.NOT_FOUND);
-        }
+        User adminGroup = userService.checkExistUser(idAdminGroup);
         Optional<GroupPost> groupPost = groupPostService.findById(idGroupPost);
         if (groupPost.isEmpty()) {
             return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_THE_GROUP_POST,
@@ -325,7 +295,7 @@ public class GroupRestController {
         if (Constants.ACCEPT.equals(type)) {
             groupPost.get().setStatus(Constants.GroupStatus.STATUS_GROUP_APPROVED);
             groupPostService.save(groupPost.get());
-            Notification notification = notificationService.createDefault(groupPost.get().getUser(), userOptional.get(),
+            Notification notification = notificationService.createDefault(groupPost.get().getUser(), adminGroup,
                     Constants.Notification.TITLE_APPROVE, idGroupPost, Constants.Notification.TYPE_GROUP_POST);
             notificationService.save(notification);
             return new ResponseEntity<>(HttpStatus.OK);
@@ -333,7 +303,7 @@ public class GroupRestController {
         if (Constants.REJECT.equals(type)) {
             groupPost.get().setStatus(Constants.GroupStatus.STATUS_GROUP_REFUSE);
             groupPostService.save(groupPost.get());
-            Notification notification = notificationService.createDefault(groupPost.get().getUser(), userOptional.get(),
+            Notification notification = notificationService.createDefault(groupPost.get().getUser(), adminGroup,
                     Constants.Notification.TITLE_REJECT, idGroupPost, Constants.Notification.TYPE_GROUP_POST);
             notificationService.save(notification);
             return new ResponseEntity<>(HttpStatus.OK);
@@ -344,11 +314,7 @@ public class GroupRestController {
     @DeleteMapping("/deleteGroupPost")
     public ResponseEntity<?> deleteGroupPost(@RequestParam Long idUser,
                                              @RequestParam Long idGroupPost) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+        userService.checkExistUser(idUser);
         Optional<GroupPost> groupPost = groupPostService.findById(idGroupPost);
         if (groupPost.isEmpty()) {
             return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_THE_GROUP_POST,
@@ -372,36 +338,28 @@ public class GroupRestController {
                     HttpStatus.BAD_REQUEST);
         }
         Common.handlerWordsLanguage(groupPost);
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_ADMIN_GROUP, idUser), HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         Optional<TheGroup> theGroupOptional = theGroupService.findById(idTheGroup);
         if (theGroupOptional.isEmpty()) {
             return new ResponseEntity<>(ResponseNotification.
                     responseMessage(Constants.IdCheck.ID_THE_GROUP, idTheGroup), HttpStatus.NOT_FOUND);
         }
         groupPost.setStatus(Constants.GroupStatus.STATUS_GROUP_PENDING);
-        groupPost.setCreateBy(userOptional.get().getFullName());
+        groupPost.setCreateBy(user.getFullName());
         groupPost.setCreateAt(new Date());
         groupPost.setTheGroup(theGroupOptional.get());
-        groupPost.setUser(userOptional.get());
+        groupPost.setUser(user);
         if (theGroupOptional.get().getIdUserCreate().equals(idUser)) {
             groupPost.setStatus(Constants.GroupStatus.STATUS_GROUP_APPROVED);
         }
         groupPostService.save(groupPost);
         if (!StringUtils.isEmpty(groupPost.getImage())) {
             ImageGroup imageGroup = imageGroupService.createImageGroupDefault(groupPost.getImage(),
-                    theGroupOptional.get().getId(), userOptional.get().getId());
+                    theGroupOptional.get().getId(), user.getId());
             imageGroupService.save(imageGroup);
         }
-        Optional<User> user = userService.findById(theGroupOptional.get().getIdUserCreate());
-        if (user.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER,
-                    theGroupOptional.get().getIdUserCreate()), HttpStatus.NOT_FOUND);
-        }
-        Notification notification = notificationService.createDefault(user.get(), userOptional.get(),
+        User adminGroup = userService.checkExistUser(theGroupOptional.get().getIdUserCreate());
+        Notification notification = notificationService.createDefault(adminGroup, user,
                 Constants.Notification.TITLE_REQUEST_CREATE_POST, idTheGroup, Constants.Notification.TYPE_GROUP_POST);
         notificationService.save(notification);
         return new ResponseEntity<>(groupPost, HttpStatus.OK);
@@ -432,11 +390,7 @@ public class GroupRestController {
             return new ResponseEntity<>(ResponseNotification.
                     responseMessage(Constants.IdCheck.ID_THE_GROUP, idGroup), HttpStatus.NOT_FOUND);
         }
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_ADMIN_GROUP, idUser), HttpStatus.NOT_FOUND);
-        }
+        userService.checkExistUser(idUser);
         List<GroupParticipant> groupParticipants = groupParticipantService.findAllUserStatusApproved(idGroup);
         List<GroupParticipant> groupParticipantList = groupParticipants.stream()
                 .filter(item -> item.getUser().getId()
@@ -451,11 +405,7 @@ public class GroupRestController {
 
     @GetMapping("/searchAllByGroupNameAndType")
     public ResponseEntity<?> searchAllByGroupNameAndType(String search, @RequestParam Long idUser) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+        userService.checkExistUser(idUser);
         search = Common.addEscapeOnSpecialCharactersWhenSearch(search);
         List<TheGroup> theGroupList = theGroupService.searchAllByGroupNameAndType(search, idUser);
         return new ResponseEntity<>(theGroupList, HttpStatus.OK);

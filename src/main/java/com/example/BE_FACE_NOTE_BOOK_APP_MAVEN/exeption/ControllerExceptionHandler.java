@@ -46,6 +46,15 @@ public class ControllerExceptionHandler {
         return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorMessage> badRequestException(BadRequestException exception, WebRequest request) {
+        ErrorMessage message = new ErrorMessage();
+        message.setStatusCode(HttpStatus.BAD_REQUEST.value());
+        message.setMessage(exception.getMessage());
+        message.setDescription(request.getDescription(false));
+        return new ResponseEntity<>(message, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(TokenInvalidException.class)
     public ResponseEntity<ErrorMessage> handleTokenInValidException(Exception exception, WebRequest request) {
         ErrorMessage message = new ErrorMessage();

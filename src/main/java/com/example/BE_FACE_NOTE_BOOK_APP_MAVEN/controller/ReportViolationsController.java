@@ -53,11 +53,7 @@ public class ReportViolationsController {
                                           @RequestParam Long idUserRepost,
                                           @RequestParam Long idViolate,
                                           @RequestParam String type) {
-        Optional<User> userRepost = userService.findById(idUserRepost);
-        if (userRepost.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUserRepost), HttpStatus.NOT_FOUND);
-        }
+        User userRepost = userService.checkExistUser(idUserRepost);
         if (Constants.REPOST_TYPE_USER.equalsIgnoreCase(type)) {
             Optional<User> userViolate = userService.findById(idViolate);
             if (userViolate.isEmpty()) {
@@ -87,7 +83,7 @@ public class ReportViolationsController {
         }
         report.setCreateAt(new Date());
         report.setStatus("R");
-        report.setIdUserReport(userRepost.get().getId());
+        report.setIdUserReport(userRepost.getId());
         reportRepository.save(report);
         return new ResponseEntity<>(HttpStatus.OK);
     }

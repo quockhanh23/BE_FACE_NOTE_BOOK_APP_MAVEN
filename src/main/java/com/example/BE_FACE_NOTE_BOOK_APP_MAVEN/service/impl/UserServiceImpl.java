@@ -6,6 +6,7 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.common.Constants;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.common.MessageResponse;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.dto.ListAvatarDefault;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.dto.UserDTO;
+import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.exeption.BadRequestException;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.jwt.JWTService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.*;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification;
@@ -135,15 +136,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<User> findById(Long id) {
         return userRepository.findById(id);
-    }
-
-    @Override
-    public UserDetails loadUserById(Long id) {
-        Optional<User> user = userRepository.findById(id);
-        if (user.isEmpty()) {
-            throw new NullPointerException();
-        }
-        return UserPrinciple.build(user.get());
     }
 
     @Override
@@ -291,6 +283,13 @@ public class UserServiceImpl implements UserService {
             }
             userDTOList.get(i).setMutualFriends(mutualFriends.size());
         }
+        getListRequest(idUser, userDTOList);
+        List<Optional<User>> optionalList = collectFriendRelation(idUser);
+        setPeopleSendRequestFriend(optionalList, userDTOList);
+        return userDTOList;
+    }
+
+    private void getListRequest(Long idUser, List<UserDTO> userDTOList) {
         List<FriendRelation> friendRelationList = friendRelationService.listRequest(idUser);
         if (!CollectionUtils.isEmpty(friendRelationList)) {
             Set<Long> listUserId = new HashSet<>();
@@ -307,25 +306,29 @@ public class UserServiceImpl implements UserService {
                 });
             }
         }
+    }
+
+    private List<Optional<User>> collectFriendRelation(Long idUser) {
         List<FriendRelation> friendRelations = friendRelationService.findAllListRequestAddFriendById(idUser);
         List<Optional<User>> optionalList = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(friendRelations)) {
-            for (FriendRelation friendRelation : friendRelations) {
-                Optional<User> userOptional = findById(friendRelation.getFriend().getId());
-                if (userOptional.isEmpty() || userOptional.get().getId().equals(idUser)) continue;
-                optionalList.add(userOptional);
+        if (CollectionUtils.isEmpty(friendRelations)) return optionalList;
+        for (FriendRelation friendRelation : friendRelations) {
+            Optional<User> userOptional = findById(friendRelation.getFriend().getId());
+            if (userOptional.isEmpty() || userOptional.get().getId().equals(idUser)) continue;
+            optionalList.add(userOptional);
+        }
+        return optionalList;
+    }
+
+    private void setPeopleSendRequestFriend(List<Optional<User>> optionalList, List<UserDTO> userDTOList) {
+        if (CollectionUtils.isEmpty(optionalList)) return;
+        for (Optional<User> optionalUser : optionalList) {
+            if (optionalUser.isPresent()) {
+                Long id = optionalUser.get().getId();
+                userDTOList.stream().filter(item -> item.getId().equals(id)).findFirst()
+                        .ifPresent(user -> user.setPeopleSendRequestFriend(true));
             }
         }
-        if (!CollectionUtils.isEmpty(optionalList)) {
-            for (int i = 0; i < optionalList.size(); i++) {
-                if (optionalList.get(i).isPresent()) {
-                    Long id = optionalList.get(i).get().getId();
-                    userDTOList.stream().filter(item -> item.getId().equals(id)).findFirst()
-                            .ifPresent(user -> user.setPeopleSendRequestFriend(true));
-                }
-            }
-        }
-        return userDTOList;
     }
 
     @Override
@@ -340,12 +343,16 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> searchFriend(String searchText, Long idUser) {
-        return userRepository.searchFriend(searchText, idUser);
+        List<User> userList = userRepository.searchFriend(searchText, idUser);
+        if (CollectionUtils.isEmpty(userList)) userList = new ArrayList<>();
+        return userList;
     }
 
     @Override
     public List<User> searchAll(String searchText, Long idUser) {
-        return userRepository.searchAll(searchText, idUser);
+        List<User> userList = userRepository.searchAll(searchText, idUser);
+        if (CollectionUtils.isEmpty(userList)) userList = new ArrayList<>();
+        return userList;
     }
 
     @Override
@@ -386,7 +393,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> findAllByEmailOrUsername(String searchText) {
-        return userRepository.findAllByEmailOrUsername(searchText);
+        List<User> userList = userRepository.findAllByEmailOrUsername(searchText);
+        if (CollectionUtils.isEmpty(userList)) userList = new ArrayList<>();
+        return userList;
     }
 
     @Override
@@ -410,6 +419,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User checkExistUser(Long idUser) {
+        Optional<User> userOptional = userRepository.findById(idUser);
+        if (userOptional.isEmpty()) throw new BadRequestException(MessageResponse.NOT_FOUND_USER + idUser);
+        return userOptional.get();
+    }
+
+    @Override
     public List<UserDTO> listFriend(Long idUser) {
         List<User> listFriend = allFriendByUserId(idUser);
         List<UserDTO> userDTOList = new ArrayList<>();
@@ -430,5 +446,34 @@ public class UserServiceImpl implements UserService {
             userDTOList.add(userDTO);
         });
         return userDTOList;
+    }
+
+    public void saveHistoryLogin(Long idUserLogin, String ipAddress) {
+        User user = checkExistUser(idUserLogin);
+        LastUserLogin lastUserLogin = lastUserLoginRepository.findByIdUser(user.getId());
+        if (Objects.nonNull(lastUserLogin)) {
+            lastUserLogin(lastUserLogin, user, ipAddress);
+            lastUserLoginRepository.save(lastUserLogin);
+        } else {
+            LastUserLogin userLogin = new LastUserLogin();
+            lastUserLogin(userLogin, user, ipAddress);
+            lastUserLoginRepository.save(userLogin);
+        }
+    }
+
+    @Override
+    public List<LastUserLogin> getListHistoryLogin() {
+        List<LastUserLogin> userLogins = lastUserLoginRepository.historyLogin();
+        if (CollectionUtils.isEmpty(userLogins)) userLogins = new ArrayList<>();
+        return userLogins;
+    }
+
+    private void lastUserLogin(LastUserLogin lastUserLogin, User user, String ipAddress) {
+        lastUserLogin.setIdUser(user.getId());
+        lastUserLogin.setLoginTime(new Date());
+        lastUserLogin.setUserName(user.getUsername());
+        lastUserLogin.setAvatar(user.getAvatar());
+        lastUserLogin.setFullName(user.getFullName());
+        lastUserLogin.setIpAddress(ipAddress);
     }
 }

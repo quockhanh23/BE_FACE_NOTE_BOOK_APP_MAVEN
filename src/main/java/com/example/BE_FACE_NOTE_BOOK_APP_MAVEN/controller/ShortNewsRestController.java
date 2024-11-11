@@ -79,11 +79,7 @@ public class ShortNewsRestController {
     // Tin của tôi
     @GetMapping("/myShortNews")
     public ResponseEntity<?> myShortNews(@RequestParam Long idUser) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+        userService.checkExistUser(idUser);
         List<ShortNews> shortNews = shortNewsService.myShortNew(idUser);
         if (CollectionUtils.isEmpty(shortNews)) {
             shortNews = new ArrayList<>();
@@ -253,11 +249,7 @@ public class ShortNewsRestController {
     @PostMapping("/createShortNews")
     public ResponseEntity<?> createShortNews(@RequestBody ShortNews shortNews,
                                              @RequestParam Long idUser) {
-
-        if (userService.checkUser(idUser) == null) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+        userService.checkExistUser(idUser);
         Common.handlerWordsLanguage(shortNews);
         shortNewsService.createDefaultShortNews(shortNews);
         if (shortNews.getImage().equals(Constants.ImageDefault.DEFAULT_IMAGE_SHORT_NEW)) {
@@ -280,25 +272,21 @@ public class ShortNewsRestController {
     public ResponseEntity<?> deleteShortNews(@RequestParam Long idSortNew,
                                              @RequestParam Long idUser,
                                              @RequestParam String type) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         Optional<ShortNews> shortNewsOptional = shortNewsService.findById(idSortNew);
         if (shortNewsOptional.isEmpty()) {
             return new ResponseEntity<>(ResponseNotification.
                     responseMessage(Constants.IdCheck.ID_SORT_NEW, idSortNew), HttpStatus.NOT_FOUND);
         }
         if ("trash".equals(type)) {
-            if (userOptional.get().getId().equals(shortNewsOptional.get().getUser().getId())) {
+            if (user.getId().equals(shortNewsOptional.get().getUser().getId())) {
                 shortNewsOptional.get().setDelete(true);
                 shortNewsService.save(shortNewsOptional.get());
                 return new ResponseEntity<>(HttpStatus.OK);
             }
         }
         if ("delete".equals(type)) {
-            if (userOptional.get().getId().equals(shortNewsOptional.get().getUser().getId())) {
+            if (user.getId().equals(shortNewsOptional.get().getUser().getId())) {
                 shortNewsService.delete(shortNewsOptional.get());
                 return new ResponseEntity<>(HttpStatus.OK);
             }
@@ -314,11 +302,7 @@ public class ShortNewsRestController {
                                              @RequestParam Long idUser,
                                              @RequestParam String type,
                                              @RequestHeader("Authorization") String authorization) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+        userService.checkExistUser(idUser);
         boolean check = userService.errorToken(authorization, idUser);
         if (!check) {
             return new ResponseEntity<>(new ResponseNotification(HttpStatus.UNAUTHORIZED.toString(),
@@ -327,7 +311,7 @@ public class ShortNewsRestController {
         }
         List<ShortNews> shortNews = shortNewsRepository.findAllById(listIdSortNew);
         if (Constants.DELETE_ALL.equalsIgnoreCase(type)) {
-            shortNewsRepository.deleteInBatch(shortNews);
+            shortNewsRepository.deleteAllInBatch(shortNews);
             return new ResponseEntity<>(HttpStatus.OK);
         }
         if (Constants.RESTORE_ALL.equalsIgnoreCase(type)) {
@@ -343,11 +327,7 @@ public class ShortNewsRestController {
     // Các tin đã xóa
     @GetMapping("/shortNewsInTrash")
     public ResponseEntity<?> shortNewsInTrash(@RequestParam Long idUser) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+        userService.checkExistUser(idUser);
         List<ShortNews> shortNews = shortNewsService.getListShortNewInTrash(idUser);
         if (CollectionUtils.isEmpty(shortNews)) {
             shortNews = new ArrayList<>();

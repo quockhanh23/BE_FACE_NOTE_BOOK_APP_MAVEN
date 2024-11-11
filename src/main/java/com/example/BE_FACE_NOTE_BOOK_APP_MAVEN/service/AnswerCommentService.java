@@ -8,7 +8,7 @@ public interface AnswerCommentService extends GeneralService<AnswerComment> {
 
     void delete(AnswerComment entity);
 
-    void create(AnswerComment answerComment);
+    void createDefault(AnswerComment answerComment);
 
     void saveAll(List<AnswerComment> answerComments);
 

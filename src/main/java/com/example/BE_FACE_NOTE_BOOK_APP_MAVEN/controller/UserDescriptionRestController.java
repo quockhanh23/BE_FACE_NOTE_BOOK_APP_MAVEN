@@ -53,12 +53,8 @@ public class UserDescriptionRestController {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         Common.handlerWordsLanguage(userDescription);
-        Optional<User> optionalUser = userService.findById(idUser);
-        if (optionalUser.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
-        userDescription.setUser(optionalUser.get());
+        User user = userService.checkExistUser(idUser);
+        userDescription.setUser(user);
         userDescription.setCreateAt(new Date());
         userDescription.setStatus(Constants.STATUS_PUBLIC);
         userDescriptionService.save(userDescription);

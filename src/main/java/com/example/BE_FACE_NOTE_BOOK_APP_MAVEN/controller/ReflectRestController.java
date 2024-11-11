@@ -114,11 +114,7 @@ public class ReflectRestController {
     public ResponseEntity<?> actionReflectPost(@RequestParam Long idPost,
                                                @RequestParam Long idUser,
                                                @RequestParam String type) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         Optional<Post2> postOptional = postService.findById(idPost);
         if (postOptional.isEmpty()) {
             return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_POST, idPost),
@@ -133,7 +129,7 @@ public class ReflectRestController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
             LikePost likePost = new LikePost();
-            likePost.setUserLike(userOptional.get());
+            likePost.setUserLike(user);
             likePost.setCreateAt(LocalDateTime.now());
             likePost.setPost(postOptional.get());
             likePostService.save(likePost);
@@ -146,7 +142,7 @@ public class ReflectRestController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
             IconHeart iconHeart = new IconHeart();
-            iconHeart.setUser(userOptional.get());
+            iconHeart.setUser(user);
             iconHeart.setCreateAt(new Date());
             iconHeart.setPost(postOptional.get());
             iconHeartService.save(iconHeart);
@@ -160,7 +156,7 @@ public class ReflectRestController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
             DisLikePost disLikePost = new DisLikePost();
-            disLikePost.setUserDisLike(userOptional.get());
+            disLikePost.setUserDisLike(user);
             disLikePost.setCreateAt(new Date());
             disLikePost.setPost(postOptional.get());
             disLikePostService.save(disLikePost);
@@ -168,7 +164,7 @@ public class ReflectRestController {
         if (!postOptional.get().getUser().getId().equals(idUser)) {
             String typeNotification = Constants.Notification.TYPE_POST;
             Notification notification = notificationService.
-                    createDefault(postOptional.get().getUser(), userOptional.get(), title, idPost, typeNotification);
+                    createDefault(postOptional.get().getUser(), user, title, idPost, typeNotification);
             notificationService.save(notification);
         }
         return new ResponseEntity<>(HttpStatus.OK);
@@ -179,11 +175,7 @@ public class ReflectRestController {
     public ResponseEntity<?> actionReflectComment(@RequestParam Long idComment,
                                                   @RequestParam Long idUser,
                                                   @RequestParam String type) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         Optional<Comment> commentOptional = commentService.findById(idComment);
         if (commentOptional.isEmpty()) {
             return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_COMMENT, idComment),
@@ -198,7 +190,7 @@ public class ReflectRestController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
             LikeComment likeComment = new LikeComment();
-            likeComment.setUserLike(userOptional.get());
+            likeComment.setUserLike(user);
             likeComment.setCreateAt(new Date());
             likeComment.setComment(commentOptional.get());
             likeCommentService.save(likeComment);
@@ -211,7 +203,7 @@ public class ReflectRestController {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
             DisLikeComment disLikeComment = new DisLikeComment();
-            disLikeComment.setUserDisLike(userOptional.get());
+            disLikeComment.setUserDisLike(user);
             disLikeComment.setCreateAt(new Date());
             disLikeComment.setComment(commentOptional.get());
             disLikeCommentService.save(disLikeComment);
@@ -219,7 +211,7 @@ public class ReflectRestController {
         if (!commentOptional.get().getUser().getId().equals(idUser)) {
             String typeNotification = Constants.Notification.TYPE_COMMENT;
             Notification notification = notificationService.
-                    createDefault(commentOptional.get().getUser(), userOptional.get(), title, idComment, typeNotification);
+                    createDefault(commentOptional.get().getUser(), user, title, idComment, typeNotification);
             notificationService.save(notification);
         }
         return new ResponseEntity<>(HttpStatus.OK);

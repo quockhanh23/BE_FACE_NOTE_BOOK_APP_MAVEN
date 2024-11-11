@@ -65,15 +65,11 @@ public class SavedRestController {
     public ResponseEntity<?> savePost(@RequestParam Long idPost, @RequestParam Long idUser, @RequestParam String type) {
         Optional<Post2> postOptional = postService.findById(idPost);
         Optional<GroupPost> groupPost = groupPostService.findById(idPost);
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         List<Saved> savedList = savedRepository.findAll();
         if (!CollectionUtils.isEmpty(savedList)) {
             for (int i = 0; i < savedList.size(); i++) {
-                if (savedList.get(i).getIdUser().equals(userOptional.get().getId())
+                if (savedList.get(i).getIdUser().equals(user.getId())
                         && savedList.get(i).getIdPost().equals(idPost)) {
                     if (savedList.get(i).getStatus().equals(Constants.STATUS_SAVED)) {
                         return new ResponseEntity<>(new ResponseNotification(HttpStatus.BAD_REQUEST.toString(),

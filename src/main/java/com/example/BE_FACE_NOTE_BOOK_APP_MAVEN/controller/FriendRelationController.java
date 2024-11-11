@@ -162,49 +162,41 @@ public class FriendRelationController {
     public ResponseEntity<?> senRequestFriend(@RequestParam Long idUser, @RequestParam Long idFriend) {
         Optional<FriendRelation> optionalFriendRelation = friendRelationService.findByIdUserAndIdFriend(idUser, idFriend);
         Optional<FriendRelation> optionalFriendRelation2 = friendRelationService.findByIdUserAndIdFriend(idFriend, idUser);
-        Optional<User> user = userService.findById(idFriend);
-        Optional<User> user2 = userService.findById(idUser);
-        if (user.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idFriend),
-                    HttpStatus.NOT_FOUND);
-        }
-        if (user2.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idFriend);
+        User user2 = userService.checkExistUser(idUser);
         if (Objects.equals(idUser, idFriend)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        if (user.get().getStatus().equals(Constants.STATUS_BANED)) {
+        if (user.getStatus().equals(Constants.STATUS_BANED)) {
             return new ResponseEntity<>(HttpStatus.LOCKED);
         }
         if (optionalFriendRelation.isEmpty()) {
             FriendRelation friendRelation = friendRelationService.createDefaultStatusWaiting();
-            friendRelation.setUserLogin(user2.get());
+            friendRelation.setUserLogin(user2);
             friendRelation.setIdFriend(idFriend);
             friendRelation.setIdUser(idUser);
-            friendRelation.setFriend(user2.get());
+            friendRelation.setFriend(user2);
             friendRelationService.save(friendRelation);
         } else {
             optionalFriendRelation.get().setStatusFriend(Constants.WAITING);
-            optionalFriendRelation.get().setUserLogin(user2.get());
+            optionalFriendRelation.get().setUserLogin(user2);
             friendRelationService.save(optionalFriendRelation.get());
         }
         if (optionalFriendRelation2.isEmpty()) {
             FriendRelation friendRelation = friendRelationService.createDefaultStatusWaiting();
-            friendRelation.setFriend(user2.get());
+            friendRelation.setFriend(user2);
             friendRelation.setIdUser(idFriend);
             friendRelation.setIdFriend(idUser);
-            friendRelation.setUserLogin(user2.get());
+            friendRelation.setUserLogin(user2);
             friendRelationService.save(friendRelation);
         } else {
             optionalFriendRelation2.get().setStatusFriend(Constants.WAITING);
-            optionalFriendRelation2.get().setUserLogin(user2.get());
+            optionalFriendRelation2.get().setUserLogin(user2);
             friendRelationService.save(optionalFriendRelation2.get());
         }
         String title = Constants.Notification.TITLE_SEND_REQUEST_FRIEND;
         String type = Constants.Notification.TYPE_FRIEND;
-        Notification notification = notificationService.createDefault(user.get(), user2.get(), title, idFriend, type);
+        Notification notification = notificationService.createDefault(user, user2, title, idFriend, type);
         notificationService.save(notification);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -222,13 +214,10 @@ public class FriendRelationController {
         if (Objects.equals(idUser, idFriend)) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        Optional<User> user = userService.findById(idFriend);
-        Optional<User> user2 = userService.findById(idUser);
-        if (user.isEmpty() || user2.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idFriend);
+        User user2 = userService.checkExistUser(idUser);
         if ("accept".equalsIgnoreCase(type)) {
-            if (user.get().getStatus().equals(Constants.STATUS_BANED)) {
+            if (user.getStatus().equals(Constants.STATUS_BANED)) {
                 return new ResponseEntity<>(HttpStatus.LOCKED);
             }
             friendRelationService.saveAction(optionalFriendRelation.get(),
@@ -239,8 +228,8 @@ public class FriendRelationController {
             }
             String title = Constants.Notification.TITLE_AGREE_FRIEND;
             String typeNotification = Constants.Notification.TYPE_FRIEND;
-            Notification notification = notificationService.createDefault(user.get(),
-                    user2.get(), title, idFriend, typeNotification);
+            Notification notification = notificationService.createDefault(user,
+                    user2, title, idFriend, typeNotification);
             notificationService.save(notification);
         }
         if ("delete".equalsIgnoreCase(type)) {
