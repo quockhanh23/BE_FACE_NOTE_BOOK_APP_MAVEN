@@ -127,7 +127,7 @@ public class UserController {
         search = Common.addEscapeOnSpecialCharactersWhenSearch(search);
         List<UserSearchDTO> list = new ArrayList<>();
         List<User> userList = userService.searchAll(search, idUserLogin);
-        if (CollectionUtils.isEmpty(userList)) {
+        if (!CollectionUtils.isEmpty(userList)) {
             userList.forEach(user -> {
                 UserSearchDTO userDTO = new UserSearchDTO();
                 BeanUtils.copyProperties(user, userDTO);
