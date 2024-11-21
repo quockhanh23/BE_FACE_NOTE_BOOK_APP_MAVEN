@@ -7,7 +7,6 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.LastUserLogin;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.User;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification;
 import org.springframework.data.repository.query.Param;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.List;

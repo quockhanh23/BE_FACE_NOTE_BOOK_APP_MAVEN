@@ -30,4 +30,6 @@ public interface PostService extends GeneralService<Post2> {
     List<PostDTO> filterListPost(List<Post2> post2List);
 
     void deleteRelateOfComment(List<Comment> comments);
+
+    Post2 checkExistPost(Long idPost);
 }

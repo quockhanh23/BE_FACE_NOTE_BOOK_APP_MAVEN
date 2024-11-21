@@ -22,7 +22,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -56,12 +55,11 @@ public class AdminRestController {
         this.reportRepository = reportRepository;
     }
 
-    // Xem tất cả user
     @GetMapping("/adminAction")
     public ResponseEntity<?> adminAction(@RequestParam Long idAdmin,
                                          @RequestParam String type,
                                          @SuppressWarnings("unused")
-                                         @RequestHeader("Authorization") String authorization) throws IOException {
+                                         @RequestHeader("Authorization") String authorization) {
         if ("user".equals(type)) {
             List<User> users = userService.findAllRoleUser();
             List<UserDTO> userDTOList = userService.copyListDTO(users);
@@ -118,7 +116,6 @@ public class AdminRestController {
         return new ResponseEntity<>(userDTO, HttpStatus.OK);
     }
 
-    // Cấm user, kích hoạt tài khoản
     @DeleteMapping("/actionUser")
     public ResponseEntity<?> actionUser(@RequestParam Long idAdmin,
                                         @RequestParam Long idUser,
@@ -141,7 +138,6 @@ public class AdminRestController {
                 HttpStatus.BAD_REQUEST);
     }
 
-    // Xoá bài viết trong database, khóa bài viết
     @DeleteMapping("/actionPost")
     public ResponseEntity<?> actionPost(@RequestParam Long idAdmin,
                                         @RequestParam Long idPost,

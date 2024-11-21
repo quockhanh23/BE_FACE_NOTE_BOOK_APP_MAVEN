@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface UserDescriptionService {
 
-    List<UserDescription> findAllByUserId(Long user_id);
+    List<UserDescription> findAllByUserId(Long idUser);
 
     void save(UserDescription userDescription);
 

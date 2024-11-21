@@ -40,7 +40,6 @@ public class BlackListController {
         this.userService = userService;
     }
 
-    // Danh sách những người đã chặn
     @GetMapping("/listBlockedByUser")
     public ResponseEntity<?> listBlockedByUser(@RequestParam Long idUserLogin) {
         List<BlackList> blackLists = blackListService.listBlockedByIdUser(idUserLogin);
@@ -57,7 +56,6 @@ public class BlackListController {
         return new ResponseEntity<>(userBlackListDTOS, HttpStatus.OK);
     }
 
-    // Chặn 1 người
     @DeleteMapping("/block")
     public ResponseEntity<?> block(@RequestParam Long idUserLogin, @RequestParam Long idUserBlock) {
         try {
@@ -86,7 +84,6 @@ public class BlackListController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    // Bỏ chặn
     @DeleteMapping("/unBlock")
     public ResponseEntity<?> unBlock(@RequestParam Long idUserLogin, @RequestParam Long idUserBlock) {
         try {

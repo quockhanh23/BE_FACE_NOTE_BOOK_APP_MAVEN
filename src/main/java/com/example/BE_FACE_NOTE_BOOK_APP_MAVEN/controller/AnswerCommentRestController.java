@@ -76,7 +76,6 @@ public class AnswerCommentRestController {
         return new ResponseEntity<>(answerCommentList, HttpStatus.OK);
     }
 
-    // Tạo mới AnswerComment
     @PostMapping("/createAnswerComment")
     public ResponseEntity<?> createAnswerComment(@RequestBody AnswerComment answerComment,
                                                  @RequestParam Long idUser,
@@ -112,7 +111,6 @@ public class AnswerCommentRestController {
         return new ResponseEntity<>(answerCommentDTO, HttpStatus.OK);
     }
 
-    // Xóa AnswerComment
     @DeleteMapping("/deleteAnswerComment")
     public ResponseEntity<?> deleteAnswerComment(@RequestParam Long idUser,
                                                  @RequestParam Long idComment,

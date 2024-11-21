@@ -1,5 +1,8 @@
 package com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.common;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public class MessageResponse {
     public static class LoginMessage {
         public static final String USER_NAME = "Sai tên đăng nhập";
@@ -48,4 +51,5 @@ public class MessageResponse {
     public static final String ERROR = "Có lỗi sảy ra";
     public static final String IN_VALID = "Không hợp lệ";
     public static final String NOT_FOUND_USER = "Người dùng không tồn tại: ";
+    public static final String NOT_FOUND_POST = "Bài viết không tồn tại: ";
 }

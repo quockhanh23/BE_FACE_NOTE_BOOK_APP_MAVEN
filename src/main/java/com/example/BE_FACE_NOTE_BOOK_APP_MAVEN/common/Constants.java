@@ -1,5 +1,8 @@
 package com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.common;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public class Constants {
 
     public static class DataField {

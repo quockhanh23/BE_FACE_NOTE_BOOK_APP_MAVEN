@@ -1,5 +1,8 @@
 package com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.common;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public class Regex {
     public static final String CHECK_SPECIAL_CHARACTERS = "^[a-zA-Z0-9]*$";
     public static final String CHECK_SPACE = "";

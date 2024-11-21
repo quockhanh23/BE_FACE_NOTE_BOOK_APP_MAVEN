@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -167,7 +166,6 @@ public class PostRestController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    // Tạo mới bài viết
     @PostMapping("/createPost")
     @Transactional()
     public ResponseEntity<?> createPost(@RequestBody Post2 post,
@@ -185,41 +183,28 @@ public class PostRestController {
             Image image = imageService.createImageDefault(post.getImage(), post.getUser());
             imageService.save(image);
         }
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         postService.create(post);
-        post.setUser(userOptional.get());
+        post.setUser(user);
         postService.save(post);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    // Chỉnh sửa bài viết
     @PutMapping("/updatePost")
     @Transactional()
     public ResponseEntity<?> updatePost(@RequestParam Long idPost, @RequestParam Long idUser,
                                         @RequestBody Post2 post,
                                         @SuppressWarnings("unused")
                                         @RequestHeader("Authorization") String authorization) {
-        Optional<Post2> postOptional = postService.findById(idPost);
-        if (postOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_POST, idPost),
-                    HttpStatus.NOT_FOUND);
-        }
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+        Post2 postOptional = postService.checkExistPost(idPost);
+        User user = userService.checkExistUser(idUser);
         Common.handlerWordsLanguage(post);
-        if (postOptional.get().getUser().getId().equals(userOptional.get().getId())) {
-            postOptional.get().setEditAt(new Date());
+        if (postOptional.getUser().getId().equals(user.getId())) {
+            postOptional.setEditAt(new Date());
             if (StringUtils.isNotEmpty(post.getContent()) && post.getContent().trim().equals(Constants.BLANK)) {
-                postOptional.get().setContent(post.getContent());
+                postOptional.setContent(post.getContent());
             }
-            postService.save(postOptional.get());
+            postService.save(postOptional);
             return new ResponseEntity<>(HttpStatus.OK);
         }
         return new ResponseEntity<>(new ResponseNotification(HttpStatus.BAD_REQUEST.toString(),
@@ -227,15 +212,10 @@ public class PostRestController {
                 HttpStatus.BAD_REQUEST);
     }
 
-    // Update like
     @DeleteMapping("/updateReflectPost")
     public ResponseEntity<?> updateReflectPost(@RequestParam Long idPost,
                                                @RequestParam String type) {
-        Optional<Post2> postOptional = postService.findById(idPost);
-        if (postOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_POST, idPost),
-                    HttpStatus.NOT_FOUND);
-        }
+        Post2 post = postService.checkExistPost(idPost);
         List<LikePost> likePost = new ArrayList<>();
         List<DisLikePost> disLikePosts = new ArrayList<>();
         List<IconHeart> iconHearts = new ArrayList<>();
@@ -249,11 +229,11 @@ public class PostRestController {
                 iconHearts = iconHeartService.findAllHeartByPostId(idPost);
             }
         }
-        postOptional.get().setNumberLike((long) likePost.size());
-        postOptional.get().setNumberDisLike((long) disLikePosts.size());
-        postOptional.get().setIconHeart((long) iconHearts.size());
-        postOptional.get().setIconHeart((long) iconHearts.size());
-        postService.save(postOptional.get());
+        post.setNumberLike((long) likePost.size());
+        post.setNumberDisLike((long) disLikePosts.size());
+        post.setIconHeart((long) iconHearts.size());
+        post.setIconHeart((long) iconHearts.size());
+        postService.save(post);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -264,28 +244,20 @@ public class PostRestController {
                                               @RequestParam String type,
                                               @SuppressWarnings("unused")
                                               @RequestHeader("Authorization") String authorization) {
-        Optional<Post2> postOptional = postService.findById(idPost);
-        if (postOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_POST, idPost),
-                    HttpStatus.NOT_FOUND);
-        }
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+        Post2 post = postService.checkExistPost(idPost);
+        userService.checkExistUser(idUser);
         switch (type) {
-            case "Public" -> postOptional.get().setStatus(Constants.STATUS_PUBLIC);
-            case "Private" -> postOptional.get().setStatus(Constants.STATUS_PRIVATE);
+            case "Public" -> post.setStatus(Constants.STATUS_PUBLIC);
+            case "Private" -> post.setStatus(Constants.STATUS_PRIVATE);
             case "Delete" -> {
-                postOptional.get().setStatus(Constants.STATUS_DELETE);
-                postOptional.get().setDelete(true);
+                post.setStatus(Constants.STATUS_DELETE);
+                post.setDelete(true);
             }
             default -> {
-                return new ResponseEntity<>( "Param is null", HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>("Param is null", HttpStatus.NOT_FOUND);
             }
         }
-        postService.save(postOptional.get());
+        postService.save(post);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -296,11 +268,7 @@ public class PostRestController {
                                            @RequestParam String type,
                                            @SuppressWarnings("unused")
                                            @RequestHeader("Authorization") String authorization) {
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
+        userService.checkExistUser(idUser);
         List<Post2> post2List = postRepository.findAllById(listIdPost);
         // Xóa tất cả bài viết
         if (Constants.DELETE_ALL.equalsIgnoreCase(type)) {
@@ -334,23 +302,18 @@ public class PostRestController {
     @GetMapping("findOnePostById")
     public ResponseEntity<?> findOnePostById(@RequestParam Long idPost,
                                              @RequestHeader("Authorization") String authorization) {
-        Optional<Post2> postOptional = postService.findById(idPost);
-        if (postOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_POST, idPost),
-                    HttpStatus.NOT_FOUND);
-        }
-        if (!userService.errorToken(authorization, postOptional.get().getUser().getId())) {
+        Post2 post = postService.checkExistPost(idPost);
+        if (!userService.errorToken(authorization, post.getUser().getId())) {
             return new ResponseEntity<>(new ResponseNotification(HttpStatus.UNAUTHORIZED.toString(),
                     Constants.TOKEN, Constants.TOKEN + " " + MessageResponse.IN_VALID.toLowerCase()),
                     HttpStatus.UNAUTHORIZED);
         }
-        PostDTO postDTO = modelMapper.map(postOptional.get(), PostDTO.class);
-        UserDTO userDTO = modelMapper.map(postOptional.get().getUser(), UserDTO.class);
+        PostDTO postDTO = modelMapper.map(post, PostDTO.class);
+        UserDTO userDTO = modelMapper.map(post.getUser(), UserDTO.class);
         postDTO.setUserDTO(userDTO);
         return new ResponseEntity<>(postDTO, HttpStatus.OK);
     }
 
-    // Tất cả bài viết trong thùng rác
     @GetMapping("/allPostInTrash")
     public ResponseEntity<?> allPostInTrash(@RequestParam Long idUser,
                                             @RequestHeader("Authorization") String authorization) {

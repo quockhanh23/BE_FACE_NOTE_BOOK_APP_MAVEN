@@ -55,21 +55,13 @@ public class ReportViolationsController {
                                           @RequestParam String type) {
         User userRepost = userService.checkExistUser(idUserRepost);
         if (Constants.REPOST_TYPE_USER.equalsIgnoreCase(type)) {
-            Optional<User> userViolate = userService.findById(idViolate);
-            if (userViolate.isEmpty()) {
-                return new ResponseEntity<>(ResponseNotification.
-                        responseMessage(Constants.IdCheck.ID_USER, idViolate), HttpStatus.NOT_FOUND);
-            }
-            report.setIdViolate(userViolate.get().getId());
+            User userViolate = userService.checkExistUser(idViolate);
+            report.setIdViolate(userViolate.getId());
             report.setType(Constants.REPOST_TYPE_USER);
         }
         if (Constants.REPOST_TYPE_POST.equalsIgnoreCase(type)) {
-            Optional<Post2> postOptional = postService.findById(idViolate);
-            if (postOptional.isEmpty()) {
-                return new ResponseEntity<>(ResponseNotification.
-                        responseMessage(Constants.IdCheck.ID_POST, idViolate), HttpStatus.NOT_FOUND);
-            }
-            report.setIdViolate(postOptional.get().getId());
+            Post2 postViolate = postService.checkExistPost(idViolate);
+            report.setIdViolate(postViolate.getId());
             report.setType(Constants.REPOST_TYPE_POST);
         }
         if (Constants.REPOST_TYPE_GROUP.equalsIgnoreCase(type)) {
