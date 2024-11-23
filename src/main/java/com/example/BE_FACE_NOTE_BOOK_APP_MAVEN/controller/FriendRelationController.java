@@ -8,7 +8,6 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.FollowWatching;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.FriendRelation;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.Notification;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.User;
-import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.FollowWatchingRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.FriendRelationService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.NotificationService;

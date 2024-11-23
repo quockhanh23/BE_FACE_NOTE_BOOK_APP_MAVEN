@@ -376,7 +376,7 @@ public class UserController {
                 checkCover = true;
             }
         }
-        if (avatarName.equals("")) {
+        if (StringUtils.isEmpty(avatarName)) {
             if (StringUtils.isNotEmpty(user.getAvatar())
                     && !user.getAvatar().equalsIgnoreCase(userOptional.getAvatar())) {
                 userOptional.setAvatar(user.getAvatar());

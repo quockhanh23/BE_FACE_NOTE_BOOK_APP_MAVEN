@@ -1,7 +1,9 @@
 package com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.impl;
 
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.common.Constants;
+import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.common.ShortNewsExpiredStatus;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.ShortNews;
+import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.User;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.ShortNewsRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.ShortNewsService;
 import org.apache.commons.lang3.StringUtils;
@@ -9,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -22,11 +26,6 @@ public class ShortNewsServiceImpl implements ShortNewsService {
     @Autowired
     public ShortNewsServiceImpl(ShortNewsRepository shortNewsRepository) {
         this.shortNewsRepository = shortNewsRepository;
-    }
-
-    @Override
-    public Iterable<ShortNews> findAll() {
-        return shortNewsRepository.findAll();
     }
 
     @Override
@@ -47,33 +46,29 @@ public class ShortNewsServiceImpl implements ShortNewsService {
     }
 
     @Override
-    public void createDefaultShortNews(ShortNews shortNews) {
-        shortNews.setCreateAt(new Date());
-        shortNews.setToDay(new Date());
-        shortNews.setExpired(3);
-        shortNews.setRemaining(3);
+    public void createShortNews(ShortNews shortNews, User user) {
+        Date date = new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(Calendar.DAY_OF_MONTH, 3); // Cộng thêm 3 ngày
+        Date expirationDate = calendar.getTime();
+        shortNews.setCreatedAt(date);
+        shortNews.setExpirationDate(expirationDate);
+        shortNews.setDelete(false);
+        shortNews.setExpired(ShortNewsExpiredStatus.N);
         if (StringUtils.isEmpty(shortNews.getImage())) {
             shortNews.setImage(Constants.ImageDefault.DEFAULT_IMAGE_SHORT_NEW);
         }
+        if (StringUtils.isEmpty(shortNews.getStatus())) {
+            shortNews.setStatus(Constants.STATUS_PUBLIC);
+        }
+        shortNews.setUser(user);
     }
 
     @Override
     @CacheEvict(cacheNames = {"getListShortNewInTrash", "myShortNew", "findAllShortNewsPublic"}, allEntries = true)
     public void saveAll(List<ShortNews> shortNews) {
         shortNewsRepository.saveAll(shortNews);
-    }
-
-    @Override
-    public boolean checkYear(int year) {
-        if (year % 400 == 0) {
-            return true;
-        } else if (year % 100 == 0) {
-            return false;
-        } else if (year % 4 == 0) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
     @Override
@@ -97,5 +92,19 @@ public class ShortNewsServiceImpl implements ShortNewsService {
     @Cacheable(cacheNames = "getListShortNewInTrash", key = "#idUser")
     public List<ShortNews> getListShortNewInTrash(Long idUser) {
         return shortNewsRepository.getListShortNewInTrash(idUser);
+    }
+
+    @Override
+    public void checkExpiryDate() {
+        List<ShortNews> shortNews = shortNewsRepository.checkExpiryDate();
+        if (CollectionUtils.isEmpty(shortNews)) return;
+        Date currentDate = new Date();
+        for (ShortNews shortNew : shortNews) {
+            if (currentDate.compareTo(shortNew.getExpirationDate()) > 0) {
+                shortNew.setExpired(ShortNewsExpiredStatus.Y);
+                shortNew.setUpdatedAt(currentDate);
+            }
+        }
+        shortNewsRepository.saveAll(shortNews);
     }
 }

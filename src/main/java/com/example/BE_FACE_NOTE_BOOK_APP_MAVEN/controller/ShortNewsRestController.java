@@ -21,7 +21,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -53,19 +52,6 @@ public class ShortNewsRestController {
         this.shortNewsRepository = shortNewsRepository;
     }
 
-    // Lưu ngày mới
-    @GetMapping("/newDay")
-    public ResponseEntity<Iterable<ShortNews>> newDay() {
-        Iterable<ShortNews> shortNews = shortNewsService.findAll();
-        List<ShortNews> shortNewsList;
-        shortNewsList = (List<ShortNews>) shortNews;
-        for (ShortNews news : shortNewsList) {
-            news.setToDay(new Date());
-        }
-        shortNewsService.saveAll(shortNewsList);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
     // 4 tin mới nhất
     @GetMapping("/shortNewsLimit")
     public ResponseEntity<List<ShortNews>> shortNewsLimit() {
@@ -92,7 +78,7 @@ public class ShortNewsRestController {
     public ResponseEntity<?> allShortNewPublic() {
         List<ShortNews> shortNews = shortNewsService.findAllShortNewsPublic();
         List<ShortNewsDTO> shortNewsDTOList = new ArrayList<>();
-        if (shortNews != null) {
+        if (!CollectionUtils.isEmpty(shortNews)) {
             for (ShortNews news : shortNews) {
                 UserDTO userDTO = modelMapper.map(news.getUser(), UserDTO.class);
                 ShortNewsDTO shortNewsDTO = modelMapper.map(news, ShortNewsDTO.class);
@@ -104,144 +90,9 @@ public class ShortNewsRestController {
     }
 
     // Kiểm tra hạn sử dụng
-    @GetMapping("/allShortNews")
-    public ResponseEntity<?> allShortNews() {
-        Iterable<ShortNews> shortNews = shortNewsService.findAll();
-        List<ShortNews> shortNewsList;
-        shortNewsList = (List<ShortNews>) shortNews;
-        if (!CollectionUtils.isEmpty(shortNewsList)) {
-            for (ShortNews item : shortNewsList) {
-
-                int today = Integer.parseInt(item.getToDay().toString().substring(8, 10));
-                int createDay = Integer.parseInt(item.getCreateAt().toString().substring(8, 10));
-
-                int monthToday = Integer.parseInt(item.getToDay().toString().substring(5, 7));
-                int monthCreate = Integer.parseInt(item.getCreateAt().toString().substring(5, 7));
-
-                int yearToday = Integer.parseInt(item.getToDay().toString().substring(0, 4));
-                int yearCreate = Integer.parseInt(item.getCreateAt().toString().substring(0, 4));
-
-                int totalDay = 0;
-
-                Instant instant = Instant.ofEpochMilli(item.getCreateAt().getTime());
-                LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
-                Instant instant1 = Instant.ofEpochMilli(item.getToDay().getTime());
-                LocalDateTime localDateTime1 = LocalDateTime.ofInstant(instant1, ZoneId.systemDefault());
-
-                LocalDate localDate = LocalDate.from(localDateTime);
-                LocalDate localDate1 = LocalDate.from(localDateTime1);
-
-                Period period = Period.between(localDate, localDate1);
-
-                int getDay = period.getDays();
-                int getMonth = period.getMonths();
-                int getYear = period.getYears();
-
-                if (getMonth > 0) {
-                    int[] getMonthArr = new int[getMonth];
-                    if (getMonth == 1) {
-                        getMonthArr[0] = 1;
-                    }
-                    if (getMonth >= 2) {
-                        int value = 1;
-                        for (int j = 0; j < getMonth; j++) {
-                            getMonthArr[j] = value;
-                            value++;
-                        }
-                    }
-
-                    int[] month31Day = {1, 3, 5, 7, 8, 10, 12};
-                    int[] month30Day = {4, 6, 9, 11};
-                    int month28DayOr29Day = 2;
-
-                    for (int k = 0; k < getMonthArr.length; k++) {
-                        for (int j = 0; j < month31Day.length; j++) {
-                            if (monthCreate + getMonthArr[k] == month31Day[j]) {
-                                if (getMonthArr[k] >= 2) {
-                                    getDay = 0;
-                                }
-                                getDay = getDay + 31;
-                            }
-                        }
-                        for (int j = 0; j < month30Day.length; j++) {
-                            if (monthCreate + getMonthArr[k] == month30Day[j]) {
-                                if (getMonthArr[k] >= 2) {
-                                    getDay = 0;
-                                }
-                                getDay = getDay + 30;
-                            }
-                        }
-                        if (monthCreate + getMonthArr[k] == month28DayOr29Day) {
-                            if (yearCreate % 400 == 0) {
-                                if (getMonthArr[k] >= 2) {
-                                    getDay = 0;
-                                }
-                                getDay = getDay + 29;
-                            } else if (yearCreate % 100 == 0) {
-                                if (getMonthArr[k] >= 2) {
-                                    getDay = 0;
-                                }
-                                getDay = getDay + 28;
-                            } else if (yearCreate % 4 == 0) {
-                                if (getMonthArr[k] >= 2) {
-                                    getDay = 0;
-                                }
-                                getDay = getDay + 29;
-                            } else {
-                                if (getMonthArr[k] >= 2) {
-                                    getDay = 0;
-                                }
-                                getDay = getDay + 28;
-                            }
-                        }
-                        totalDay = totalDay + getDay;
-                    }
-                }
-                int dayOfYear = 0;
-                int totalDayOfYear = 0;
-                if (getYear > 0) {
-                    int[] getYearArr = new int[getYear];
-                    if (getYear == 1) {
-                        getYearArr[0] = 1;
-                        if (shortNewsService.checkYear(yearCreate)) {
-                            dayOfYear = 366;
-                        } else {
-                            dayOfYear = 365;
-                        }
-                    }
-                    if (getYear >= 2) {
-                        int value = yearCreate;
-                        for (int j = 0; j < getYear; j++) {
-                            getYearArr[j] = value;
-                            if (shortNewsService.checkYear(getYearArr[j])) {
-                                dayOfYear = 366;
-                            } else {
-                                dayOfYear = 365;
-                            }
-                            value++;
-                            totalDayOfYear = totalDayOfYear + dayOfYear;
-                        }
-                    }
-                }
-                if (getMonth == 0 && getYear == 0) {
-                    item.setRemaining(item.getExpired() - getDay);
-                }
-                if (getMonth > 0 && getYear == 0) {
-                    item.setRemaining(item.getExpired() - totalDay);
-                }
-                if (getMonth == 0 && getYear == 1) {
-                    item.setRemaining(item.getExpired() - dayOfYear);
-                }
-                if (getMonth == 0 && getYear > 1) {
-                    item.setRemaining(item.getExpired() - totalDayOfYear);
-                }
-                if (getMonth > 0 && getYear > 0) {
-                    int totalDayOfYearAndMonth = totalDayOfYear + totalDay;
-                    item.setRemaining(item.getExpired() - totalDayOfYearAndMonth);
-                }
-            }
-            shortNewsService.saveAll(shortNewsList);
-        }
+    @GetMapping("/checkExpiryDate")
+    public ResponseEntity<Void> checkExpiryDate() {
+        shortNewsService.checkExpiryDate();
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -249,20 +100,13 @@ public class ShortNewsRestController {
     @PostMapping("/createShortNews")
     public ResponseEntity<?> createShortNews(@RequestBody ShortNews shortNews,
                                              @RequestParam Long idUser) {
-        userService.checkExistUser(idUser);
+        if (StringUtils.isEmpty(shortNews.getContent())) {
+            return new ResponseEntity<>(ResponseNotification.responseMessageDataField(Constants.DataField.CONTENT),
+                    HttpStatus.BAD_REQUEST);
+        }
         Common.handlerWordsLanguage(shortNews);
-        shortNewsService.createDefaultShortNews(shortNews);
-        if (shortNews.getImage().equals(Constants.ImageDefault.DEFAULT_IMAGE_SHORT_NEW)) {
-            if (StringUtils.isEmpty(shortNews.getContent())) {
-                return new ResponseEntity<>(ResponseNotification.responseMessageDataField(Constants.DataField.CONTENT),
-                        HttpStatus.BAD_REQUEST);
-            }
-        }
-        if (StringUtils.isEmpty(shortNews.getStatus())) {
-            shortNews.setStatus(Constants.STATUS_PUBLIC);
-        }
-        shortNews.setDelete(false);
-        shortNews.setUser(userService.checkUser(idUser));
+        User user = userService.checkExistUser(idUser);
+        shortNewsService.createShortNews(shortNews, user);
         shortNewsService.save(shortNews);
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -281,13 +125,14 @@ public class ShortNewsRestController {
         if ("trash".equals(type)) {
             if (user.getId().equals(shortNewsOptional.get().getUser().getId())) {
                 shortNewsOptional.get().setDelete(true);
+                shortNewsOptional.get().setUpdatedAt(new Date());
                 shortNewsService.save(shortNewsOptional.get());
                 return new ResponseEntity<>(HttpStatus.OK);
             }
         }
         if ("delete".equals(type)) {
             if (user.getId().equals(shortNewsOptional.get().getUser().getId())) {
-                shortNewsService.delete(shortNewsOptional.get());
+                shortNewsOptional.get().setUpdatedAt(new Date());
                 return new ResponseEntity<>(HttpStatus.OK);
             }
         }
@@ -306,7 +151,8 @@ public class ShortNewsRestController {
         boolean check = userService.errorToken(authorization, idUser);
         if (!check) {
             return new ResponseEntity<>(new ResponseNotification(HttpStatus.UNAUTHORIZED.toString(),
-                    Constants.TOKEN, Constants.TOKEN + " " + MessageResponse.IN_VALID.toLowerCase()),
+                    Constants.TOKEN, Constants.TOKEN +
+                    StringUtils.SPACE + MessageResponse.IN_VALID.toLowerCase()),
                     HttpStatus.UNAUTHORIZED);
         }
         List<ShortNews> shortNews = shortNewsRepository.findAllById(listIdSortNew);

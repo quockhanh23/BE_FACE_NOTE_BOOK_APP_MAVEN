@@ -248,8 +248,8 @@ public class ConversationRestController {
         if (!CollectionUtils.isEmpty(messengers)) {
             list = messengers.stream()
                     .filter(i -> i.getContent().length() > 8
-                            && (i.getContent().substring(0, 8).equals(Constants.Link.CHECK_LINK)
-                            || i.getContent().substring(0, 5).equals(Constants.Link.CHECK_LINK_2)))
+                            && (i.getContent().startsWith(Constants.Link.CHECK_LINK)
+                            || i.getContent().startsWith(Constants.Link.CHECK_LINK_2)))
                     .map(Messenger::getContent).collect(Collectors.toSet());
         }
         return new ResponseEntity<>(list, HttpStatus.OK);
