@@ -19,4 +19,6 @@ public interface IconHeartRepository extends JpaRepository<IconHeart, Long> {
     List<IconHeart> findAllByPostIdAndUserIsNotNull(@Param("idPost") Long idPost);
 
     List<IconHeart> findAllByPostIdInAndUserIsNotNull(List<Long> post_id);
+
+    long countAllByPostIdAndUserIsNotNull(@Param("idPost") Long idPost);
 }

@@ -49,4 +49,9 @@ public class IconHeartServiceImpl implements IconHeartService {
     public List<IconHeart> findAllByPostIdIn(List<Long> post_id) {
         return iconHeartRepository.findAllByPostIdInAndUserIsNotNull(post_id);
     }
+
+    @Override
+    public long countAllIconHeartByPostId(Long idPost) {
+        return iconHeartRepository.countAllByPostIdAndUserIsNotNull(idPost);
+    }
 }

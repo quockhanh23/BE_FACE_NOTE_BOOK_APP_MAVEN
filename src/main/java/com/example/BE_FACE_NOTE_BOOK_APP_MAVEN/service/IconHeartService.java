@@ -14,4 +14,6 @@ public interface IconHeartService extends GeneralService<IconHeart> {
     List<IconHeart> findAllHeartByPostId(@Param("idPost") Long idPost);
 
     List<IconHeart> findAllByPostIdIn(List<Long> post_id);
+
+    long countAllIconHeartByPostId(@Param("idPost") Long idPost);
 }

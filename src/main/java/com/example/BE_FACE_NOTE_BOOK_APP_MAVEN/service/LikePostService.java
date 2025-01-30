@@ -14,4 +14,6 @@ public interface LikePostService extends GeneralService<LikePost> {
     List<LikePost> findAllByPostIdIn(List<Long> post_id);
 
     void delete(LikePost entity);
+
+    long countAllLikeByPostId(@Param("idPost") Long idPost);
 }

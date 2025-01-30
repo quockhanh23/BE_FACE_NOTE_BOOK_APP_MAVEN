@@ -21,4 +21,6 @@ public interface DisLikePostRepository extends JpaRepository<DisLikePost, Long> 
     List<DisLikePost> findAllByPostIdInAndUserDisLikeIsNotNull(List<Long> post_id);
 
     void delete(DisLikePost entity);
+
+    long countAllByPostIdAndUserDisLikeIsNotNull(@Param("idPost") Long idPost);
 }

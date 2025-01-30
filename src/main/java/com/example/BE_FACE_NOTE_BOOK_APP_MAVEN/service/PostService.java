@@ -19,7 +19,7 @@ public interface PostService extends GeneralService<Post2> {
 
     PostDTO mapper(Post2 post2);
 
-    void create(Post2 post2);
+    void createDefaultPost(Post2 post2);
 
     void saveAll(List<Post2> post2List);
 

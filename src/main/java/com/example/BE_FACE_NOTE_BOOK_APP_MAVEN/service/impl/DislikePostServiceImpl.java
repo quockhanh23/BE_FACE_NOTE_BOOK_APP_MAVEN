@@ -43,4 +43,9 @@ public class DislikePostServiceImpl implements DisLikePostService {
     public List<DisLikePost> findAllByPostIdIn(List<Long> post_id) {
         return disLikeRepository.findAllByPostIdInAndUserDisLikeIsNotNull(post_id);
     }
+
+    @Override
+    public long countAllDisLikePostByPostId(Long idPost) {
+        return disLikeRepository.countAllByPostIdAndUserDisLikeIsNotNull(idPost);
+    }
 }

@@ -184,7 +184,7 @@ public class PostRestController {
             imageService.save(image);
         }
         User user = userService.checkExistUser(idUser);
-        postService.create(post);
+        postService.createDefaultPost(post);
         post.setUser(user);
         postService.save(post);
         return new ResponseEntity<>(HttpStatus.OK);
@@ -216,23 +216,31 @@ public class PostRestController {
     public ResponseEntity<Object> updateReflectPost(@RequestParam Long idPost,
                                                     @RequestParam String type) {
         Post2 post = postService.checkExistPost(idPost);
-        List<LikePost> likePost = new ArrayList<>();
-        List<DisLikePost> disLikePosts = new ArrayList<>();
-        List<IconHeart> iconHearts = new ArrayList<>();
+        long likePost;
+        long disLikePosts;
+        long iconHearts;
         switch (type) {
-            case "like" -> likePost = likePostService.findAllLikeByPostId(idPost);
-            case "disLike" -> disLikePosts = disLikePostService.findAllDisLikeByPostId(idPost);
-            case "heart" -> iconHearts = iconHeartService.findAllHeartByPostId(idPost);
+            case "like" -> {
+                likePost = likePostService.countAllLikeByPostId(idPost);
+                post.setNumberLike(likePost);
+            }
+            case "disLike" -> {
+                disLikePosts = disLikePostService.countAllDisLikePostByPostId(idPost);
+                post.setNumberDisLike(disLikePosts);
+            }
+            case "heart" -> {
+                iconHearts = iconHeartService.countAllIconHeartByPostId(idPost);
+                post.setIconHeart(iconHearts);
+            }
             default -> {
-                likePost = likePostService.findAllLikeByPostId(idPost);
-                disLikePosts = disLikePostService.findAllDisLikeByPostId(idPost);
-                iconHearts = iconHeartService.findAllHeartByPostId(idPost);
+                likePost = likePostService.countAllLikeByPostId(idPost);
+                disLikePosts = disLikePostService.countAllDisLikePostByPostId(idPost);
+                iconHearts = iconHeartService.countAllIconHeartByPostId(idPost);
+                post.setNumberLike(likePost);
+                post.setNumberDisLike(disLikePosts);
+                post.setIconHeart(iconHearts);
             }
         }
-        post.setNumberLike((long) likePost.size());
-        post.setNumberDisLike((long) disLikePosts.size());
-        post.setIconHeart((long) iconHearts.size());
-        post.setIconHeart((long) iconHearts.size());
         postService.save(post);
         return new ResponseEntity<>(HttpStatus.OK);
     }

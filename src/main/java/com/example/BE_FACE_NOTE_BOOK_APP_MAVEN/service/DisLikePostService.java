@@ -12,4 +12,6 @@ public interface DisLikePostService extends GeneralService<DisLikePost> {
     List<DisLikePost> findAllDisLikeByPostId(@Param("idPost") Long idPost);
 
     List<DisLikePost> findAllByPostIdIn(List<Long> post_id);
+
+    long countAllDisLikePostByPostId(@Param("idPost") Long idPost);
 }

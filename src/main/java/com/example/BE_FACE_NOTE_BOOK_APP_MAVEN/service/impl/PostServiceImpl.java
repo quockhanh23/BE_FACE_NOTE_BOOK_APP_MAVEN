@@ -116,7 +116,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void create(Post2 post2) {
+    public void createDefaultPost(Post2 post2) {
         if (StringUtils.isEmpty(post2.getStatus())) {
             post2.setStatus(Constants.STATUS_PUBLIC);
         }

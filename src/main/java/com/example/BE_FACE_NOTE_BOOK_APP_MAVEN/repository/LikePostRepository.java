@@ -21,4 +21,6 @@ public interface LikePostRepository extends JpaRepository<LikePost, Long> {
     List<LikePost> findAllByPostIdInAndUserLikeIsNotNull(List<Long> post_id);
 
     void delete(LikePost entity);
+
+    long countAllByPostIdAndUserLikeIsNotNull(@Param("idPost") Long idPost);
 }

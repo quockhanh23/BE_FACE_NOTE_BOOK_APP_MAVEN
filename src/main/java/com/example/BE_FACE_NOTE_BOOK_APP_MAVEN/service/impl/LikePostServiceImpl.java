@@ -48,4 +48,9 @@ public class LikePostServiceImpl implements LikePostService {
     public void delete(LikePost entity) {
         likePostRepository.delete(entity);
     }
+
+    @Override
+    public long countAllLikeByPostId(Long idPost) {
+        return likePostRepository.countAllByPostIdAndUserLikeIsNotNull(idPost);
+    }
 }
