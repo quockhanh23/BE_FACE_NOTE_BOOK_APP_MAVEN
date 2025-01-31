@@ -16,7 +16,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @RestController
 @PropertySource("classpath:application.properties")
@@ -81,11 +84,8 @@ public class ImageRestController {
                                            @RequestParam Long idUser,
                                            @SuppressWarnings("unused")
                                            @RequestHeader("Authorization") String authorization) {
-        if (Objects.isNull(userService.checkUser(idUser))) {
-            return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_USER, idUser),
-                    HttpStatus.NOT_FOUND);
-        }
-        Image imageDefault = imageService.createImageDefault(image.getLinkImage(), userService.checkUser(idUser));
+        User user = userService.checkExistUser(idUser);
+        Image imageDefault = imageService.createImageDefault(image.getLinkImage(), user);
         imageService.save(imageDefault);
         return new ResponseEntity<>(image, HttpStatus.OK);
     }
@@ -102,22 +102,24 @@ public class ImageRestController {
             return new ResponseEntity<>(ResponseNotification.responseMessage(Constants.IdCheck.ID_IMAGE, idImage),
                     HttpStatus.NOT_FOUND);
         }
-        if ("Private".equals(type)) {
-            if (imageOptional.get().getIdUser().equals(user.getId())) {
+        boolean isImageOfUser = imageOptional.get().getIdUser().equals(user.getId());
+        if (!isImageOfUser) {
+            return new ResponseEntity<>(new ResponseNotification(HttpStatus.BAD_REQUEST.toString(),
+                    MessageResponse.IN_VALID, MessageResponse.DESCRIPTION),
+                    HttpStatus.BAD_REQUEST);
+        }
+        switch (type) {
+            case "Private" -> {
                 imageOptional.get().setStatus(Constants.STATUS_PRIVATE);
                 imageService.save(imageOptional.get());
                 return new ResponseEntity<>(HttpStatus.OK);
             }
-        }
-        if ("Public".equals(type)) {
-            if (imageOptional.get().getIdUser().equals(user.getId())) {
+            case "Public" -> {
                 imageOptional.get().setStatus(Constants.STATUS_PUBLIC);
                 imageService.save(imageOptional.get());
                 return new ResponseEntity<>(HttpStatus.OK);
             }
-        }
-        if ("Delete".equals(type)) {
-            if (imageOptional.get().getIdUser().equals(user.getId())) {
+            case "Delete" -> {
                 imageOptional.get().setStatus(Constants.STATUS_DELETE);
                 imageOptional.get().setDeleteAt(new Date());
                 imageService.save(imageOptional.get());
@@ -137,24 +139,20 @@ public class ImageRestController {
                 }
                 return new ResponseEntity<>(HttpStatus.OK);
             }
-        }
-        if ("Restore".equals(type)) {
-            if (imageOptional.get().getIdUser().equals(user.getId())) {
+            case "Restore" -> {
                 imageOptional.get().setStatus(Constants.STATUS_PUBLIC);
                 imageOptional.get().setDeleteAt(null);
                 imageService.save(imageOptional.get());
                 return new ResponseEntity<>(HttpStatus.OK);
             }
-        }
-        if ("DeleteDB".equals(type)) {
-            if (imageOptional.get().getIdUser().equals(user.getId())) {
+            case "DeleteDB" -> {
                 imageService.delete(imageOptional.get());
                 return new ResponseEntity<>(HttpStatus.OK);
             }
+            default -> {
+                return new ResponseEntity<>(HttpStatus.OK);
+            }
         }
-        return new ResponseEntity<>(new ResponseNotification(HttpStatus.BAD_REQUEST.toString(),
-                MessageResponse.IN_VALID, MessageResponse.DESCRIPTION),
-                HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping("/getAllImageDeleted")

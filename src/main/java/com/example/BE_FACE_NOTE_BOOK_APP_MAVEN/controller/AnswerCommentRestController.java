@@ -100,7 +100,7 @@ public class AnswerCommentRestController {
 
         AnswerCommentDTO answerCommentDTO = modelMapper.map(answerComment, AnswerCommentDTO.class);
         answerCommentDTO.setCommentDTO(commentService.mapper(commentOptional.get()));
-        answerCommentDTO.setUserDTO(userService.mapper(userService.checkUser(idUser)));
+        answerCommentDTO.setUserDTO(userService.mapper(user));
         if (!commentOptional.get().getUser().getId().equals(idUser)) {
             String title = Constants.Notification.TITLE_ANSWER_COMMENT;
             String type = Constants.Notification.TYPE_ANSWER_COMMENT;

@@ -209,7 +209,7 @@ public class UserController {
     @Transactional
     @PostMapping("/passwordRetrieval")
     public ResponseEntity<Object> passwordRetrieval(@RequestBody PasswordRetrieval passwordRetrieval,
-                                               @RequestHeader("Authorization") String authorization) {
+                                                    @RequestHeader("Authorization") String authorization) {
         if (StringUtils.isEmpty(passwordRetrieval.getUserName()) || StringUtils.isEmpty(passwordRetrieval.getEmail())) {
             return new ResponseEntity<>(new ResponseNotification(HttpStatus.BAD_REQUEST.toString(),
                     MessageResponse.IN_VALID), HttpStatus.BAD_REQUEST);
@@ -247,9 +247,9 @@ public class UserController {
     @Transactional()
     @PostMapping("/matchPassword")
     public ResponseEntity<Object> matchPassword(@RequestBody UserChangePassword userChangePassword,
-                                           @RequestParam Long idUser,
-                                           @SuppressWarnings("unused")
-                                           @RequestHeader("Authorization") String authorization) {
+                                                @RequestParam Long idUser,
+                                                @SuppressWarnings("unused")
+                                                @RequestHeader("Authorization") String authorization) {
         try {
             User user = userService.checkExistUser(idUser);
             if (passwordEncoder.matches(userChangePassword.getPasswordOld(), user.getPassword())) {
@@ -304,18 +304,18 @@ public class UserController {
             SecurityContextHolder.getContext().setAuthentication(authentication);
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             String jwt = jwtService.generateToken(userDetails);
-            Optional<VerificationToken> verificationToken = verificationTokenRepository
+            Optional<VerificationToken> verificationTokenOptional = verificationTokenRepository
                     .findByUserId(currentUser.get().getId());
-            if (verificationToken.isEmpty()) {
-                VerificationToken verificationToken1 = new VerificationToken();
-                verificationToken1.setToken(jwt);
-                verificationToken1.setCreatedDate(new Date());
-                verificationToken1.setUser(currentUser.get());
-                verificationTokenRepository.save(verificationToken1);
+            if (verificationTokenOptional.isEmpty()) {
+                VerificationToken verificationToken = new VerificationToken();
+                verificationToken.setToken(jwt);
+                verificationToken.setCreatedDate(new Date());
+                verificationToken.setUser(currentUser.get());
+                verificationTokenRepository.save(verificationToken);
             } else {
-                verificationToken.get().setCreatedDate(new Date());
-                verificationToken.get().setToken(jwt);
-                verificationTokenRepository.save(verificationToken.get());
+                verificationTokenOptional.get().setCreatedDate(new Date());
+                verificationTokenOptional.get().setToken(jwt);
+                verificationTokenRepository.save(verificationTokenOptional.get());
             }
             return ResponseEntity.ok(new JwtResponse(jwt, currentUser.get().getId(),
                     userDetails.getUsername(), userDetails.getAuthorities()));
@@ -337,14 +337,14 @@ public class UserController {
                         HttpStatus.BAD_REQUEST);
             }
         }
-        UserDTO userDTO = modelMapper.map(userService.checkUser(idUser), UserDTO.class);
+        UserDTO userDTO = modelMapper.map(user, UserDTO.class);
         return new ResponseEntity<>(userDTO, HttpStatus.OK);
     }
 
     @GetMapping("/findNameUserById/{idUser}")
     public ResponseEntity<Object> findNameUserById(@PathVariable Long idUser) {
-        userService.checkExistUser(idUser);
-        NameDTO nameDTO = modelMapper.map(userService.checkUser(idUser), NameDTO.class);
+        User user = userService.checkExistUser(idUser);
+        NameDTO nameDTO = modelMapper.map(user, NameDTO.class);
         return new ResponseEntity<>(nameDTO, HttpStatus.OK);
     }
 
@@ -352,9 +352,9 @@ public class UserController {
     @Transactional()
     @PutMapping("/users/{idUser}")
     public ResponseEntity<Object> updateUserProfile(@PathVariable Long idUser,
-                                               @RequestBody User user,
-                                               @SuppressWarnings("unused")
-                                               @RequestHeader("Authorization") String authorization) {
+                                                    @RequestBody User user,
+                                                    @SuppressWarnings("unused")
+                                                    @RequestHeader("Authorization") String authorization) {
         if (StringUtils.isEmpty(user.getFullName()) || StringUtils.isEmpty(user.getPhone())) {
             return new ResponseEntity<>(new ResponseNotification(HttpStatus.BAD_REQUEST.toString(),
                     MessageResponse.DESCRIPTION_BLANK), HttpStatus.BAD_REQUEST);
@@ -415,9 +415,9 @@ public class UserController {
 
     @DeleteMapping("/changeStatusUser")
     public ResponseEntity<Object> changeStatusUser(@RequestParam Long idUser,
-                                              @RequestParam String type,
-                                              @SuppressWarnings("unused")
-                                              @RequestHeader("Authorization") String authorization) {
+                                                   @RequestParam String type,
+                                                   @SuppressWarnings("unused")
+                                                   @RequestHeader("Authorization") String authorization) {
         User user = userService.checkExistUser(idUser);
         if ("active".equalsIgnoreCase(type)) {
             if (user.getStatus().equals(Constants.STATUS_ACTIVE)) {
@@ -451,10 +451,10 @@ public class UserController {
 
     @DeleteMapping("/changeImage")
     public ResponseEntity<Object> changeImage(@RequestParam Long idUser,
-                                         @RequestParam Long idImage,
-                                         @RequestParam String type,
-                                         @SuppressWarnings("unused")
-                                         @RequestHeader("Authorization") String authorization) {
+                                              @RequestParam Long idImage,
+                                              @RequestParam String type,
+                                              @SuppressWarnings("unused")
+                                              @RequestHeader("Authorization") String authorization) {
         User user = userService.checkExistUser(idUser);
         Optional<Image> imageOptional = imageService.findById(idImage);
         if (imageOptional.isEmpty()) {

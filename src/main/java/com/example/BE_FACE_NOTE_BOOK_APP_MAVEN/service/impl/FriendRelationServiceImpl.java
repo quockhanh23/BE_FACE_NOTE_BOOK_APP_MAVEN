@@ -104,11 +104,9 @@ public class FriendRelationServiceImpl implements FriendRelationService {
     @Override
     public List<UserDTO> listResult(List<User> userList) {
         List<UserDTO> userDTOList = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(userList)) {
-            userDTOList = userList.stream()
-                    .map(x -> new UserDTO(x.getId(), x.getFullName(),
-                            x.getAvatar(), x.getCover())).collect(Collectors.toList());
-        }
-        return userDTOList;
+        if (CollectionUtils.isEmpty(userList)) return userDTOList;
+        return userList.stream().map(x -> new UserDTO(x.getId(), x.getFullName(),
+                        x.getAvatar(), x.getCover())).collect(Collectors.toList());
+
     }
 }

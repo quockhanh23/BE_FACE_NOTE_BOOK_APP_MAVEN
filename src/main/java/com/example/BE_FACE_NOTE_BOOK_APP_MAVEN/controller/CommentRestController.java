@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -99,6 +100,7 @@ public class CommentRestController {
         return new ResponseEntity<>(list, HttpStatus.OK);
     }
 
+    @Transactional
     @PostMapping("/createComment")
     public ResponseEntity<Object> createComment(@RequestBody Comment comment,
                                                 @RequestParam Long idUser,
@@ -110,23 +112,19 @@ public class CommentRestController {
         }
         Common.handlerWordsLanguage(comment);
         Post2 post = postService.checkExistPost(idPost);
-        Optional<User> userOptional = userService.findById(idUser);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>(ResponseNotification.
-                    responseMessage(Constants.IdCheck.ID_USER, idUser), HttpStatus.NOT_FOUND);
-        }
+        User user = userService.checkExistUser(idUser);
         commentService.createDefault(comment);
         comment.setPost(post);
-        comment.setUser(userOptional.get());
+        comment.setUser(user);
         commentService.save(comment);
         CommentDTO commentDTO = modelMapper.map(comment, CommentDTO.class);
-        commentDTO.setUserDTO(userService.mapper(userService.checkUser(idUser)));
+        commentDTO.setUserDTO(userService.mapper(user));
         commentDTO.setPostDTO(postService.mapper(post));
         if (!post.getUser().getId().equals(idUser)) {
             String title = Constants.Notification.TITLE_COMMENT;
             String type = Constants.Notification.TYPE_COMMENT;
             Notification notification = notificationService.
-                    createDefault(post.getUser(), userOptional.get(), title, idPost, type);
+                    createDefault(post.getUser(),user, title, idPost, type);
             notificationService.save(notification);
         }
         return new ResponseEntity<>(commentDTO, HttpStatus.OK);

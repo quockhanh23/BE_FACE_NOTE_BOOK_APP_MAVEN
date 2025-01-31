@@ -37,8 +37,6 @@ public interface UserService extends UserDetailsService {
 
     Object checkAdmin(Long idAdmin);
 
-    User checkUser(Long idUser);
-
     List<ListAvatarDefault> listAvatar();
 
     Set<User> findAllByIdIn(@Param("inputList") Set<Long> inputList);

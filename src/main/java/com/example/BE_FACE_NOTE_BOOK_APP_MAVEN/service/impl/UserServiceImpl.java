@@ -196,12 +196,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User checkUser(Long idUser) {
-        Optional<User> userOptional = userRepository.findById(idUser);
-        return userOptional.orElse(null);
-    }
-
-    @Override
     public List<ListAvatarDefault> listAvatar() {
         List<ListAvatarDefault> listImageDefault = new ArrayList<>();
         AvatarDefault avatarDefault = new AvatarDefault();
