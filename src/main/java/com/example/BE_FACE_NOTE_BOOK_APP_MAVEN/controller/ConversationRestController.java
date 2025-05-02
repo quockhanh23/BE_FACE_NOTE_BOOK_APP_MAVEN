@@ -11,11 +11,11 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.ConversationService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.MessengerService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.NotificationService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 @CrossOrigin("*")
 @RequestMapping("/api/conversations")
 @Slf4j
+@RequiredArgsConstructor
 public class ConversationRestController {
 
     private final ConversationService conversationService;
@@ -43,21 +44,6 @@ public class ConversationRestController {
     private final ModelMapper modelMapper;
 
     private final NotificationService notificationService;
-
-    @Autowired
-    public ConversationRestController(ConversationService conversationService,
-                                      MessengerService messengerService,
-                                      UserService userService,
-                                      ConversationDeleteTimeRepository conversationDeleteTimeRepository,
-                                      ModelMapper modelMapper,
-                                      NotificationService notificationService) {
-        this.conversationService = conversationService;
-        this.messengerService = messengerService;
-        this.userService = userService;
-        this.conversationDeleteTimeRepository = conversationDeleteTimeRepository;
-        this.modelMapper = modelMapper;
-        this.notificationService = notificationService;
-    }
 
     //   messengers2.sort((p1, p2) -> p2.getCount() - p1.getCount());
     // Tạo cuộc trò truyện

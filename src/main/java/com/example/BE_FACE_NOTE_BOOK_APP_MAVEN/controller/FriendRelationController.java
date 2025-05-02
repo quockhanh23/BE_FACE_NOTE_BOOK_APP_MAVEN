@@ -12,8 +12,8 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.FollowWatchingReposito
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.FriendRelationService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.NotificationService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 @CrossOrigin("*")
 @RequestMapping("/api/friends")
 @Slf4j
+@RequiredArgsConstructor
 public class FriendRelationController {
 
     private final FriendRelationService friendRelationService;
@@ -37,17 +38,6 @@ public class FriendRelationController {
     private final FollowWatchingRepository followWatchingRepository;
 
     private final NotificationService notificationService;
-
-    @Autowired
-    public FriendRelationController(FriendRelationService friendRelationService,
-                                    UserService userService,
-                                    FollowWatchingRepository followWatchingRepository,
-                                    NotificationService notificationService) {
-        this.friendRelationService = friendRelationService;
-        this.userService = userService;
-        this.followWatchingRepository = followWatchingRepository;
-        this.notificationService = notificationService;
-    }
 
     // Danh sách người lạ ở phần gợi ý chung
     @GetMapping("/allPeople")

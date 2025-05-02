@@ -8,10 +8,10 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.dto.CommentDTO;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.*;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 @CrossOrigin("*")
 @RequestMapping("/api/comments")
 @Slf4j
+@RequiredArgsConstructor
 public class CommentRestController {
 
     private final CommentService commentService;
@@ -47,25 +48,6 @@ public class CommentRestController {
     private final NotificationService notificationService;
 
     private final ModelMapper modelMapper;
-
-    @Autowired
-    public CommentRestController(CommentService commentService,
-                                 UserService userService,
-                                 PostService postService,
-                                 LikeCommentService likeCommentService,
-                                 DisLikeCommentService disLikeCommentService,
-                                 AnswerCommentService answerCommentService,
-                                 NotificationService notificationService,
-                                 ModelMapper modelMapper) {
-        this.commentService = commentService;
-        this.userService = userService;
-        this.postService = postService;
-        this.likeCommentService = likeCommentService;
-        this.disLikeCommentService = disLikeCommentService;
-        this.answerCommentService = answerCommentService;
-        this.notificationService = notificationService;
-        this.modelMapper = modelMapper;
-    }
 
     @GetMapping("/allComment")
     public ResponseEntity<List<Comment>> allComment() {
@@ -124,7 +106,7 @@ public class CommentRestController {
             String title = Constants.Notification.TITLE_COMMENT;
             String type = Constants.Notification.TYPE_COMMENT;
             Notification notification = notificationService.
-                    createDefault(post.getUser(),user, title, idPost, type);
+                    createDefault(post.getUser(), user, title, idPost, type);
             notificationService.save(notification);
         }
         return new ResponseEntity<>(commentDTO, HttpStatus.OK);

@@ -6,26 +6,25 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.dto.PostDTO;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.dto.UserDTO;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.exeption.InvalidException;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.*;
-import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.AnswerCommentRepository;
-import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.DisLikeCommentRepository;
-import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.LikeCommentRepository;
-import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.PostRepository;
+import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.*;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.*;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
@@ -46,30 +45,9 @@ public class PostServiceImpl implements PostService {
 
     private final AnswerCommentRepository answerCommentRepository;
 
-    private final ModelMapper modelMapper;
+    private final HidePostRepository hidePostRepository;
 
-    @Autowired
-    public PostServiceImpl(PostRepository postRepository,
-                           LikePostService likePostService,
-                           DisLikePostService disLikePostService,
-                           IconHeartService iconHeartService,
-                           CommentService commentService,
-                           AnswerCommentService answerCommentService,
-                           LikeCommentRepository likeCommentRepository,
-                           DisLikeCommentRepository disLikeCommentRepository,
-                           AnswerCommentRepository answerCommentRepository,
-                           ModelMapper modelMapper) {
-        this.postRepository = postRepository;
-        this.likePostService = likePostService;
-        this.disLikePostService = disLikePostService;
-        this.iconHeartService = iconHeartService;
-        this.commentService = commentService;
-        this.answerCommentService = answerCommentService;
-        this.likeCommentRepository = likeCommentRepository;
-        this.disLikeCommentRepository = disLikeCommentRepository;
-        this.answerCommentRepository = answerCommentRepository;
-        this.modelMapper = modelMapper;
-    }
+    private final ModelMapper modelMapper;
 
 //    @PersistenceContext
 //    private EntityManager entityManager;
@@ -93,14 +71,13 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Cacheable(cacheNames = "findAllPostByUser", key = "#id")
-    public List<Post2> findAllPostByUser(Long id) {
-        return postRepository.findAllPostByUser(id);
+    public Page<Post2> findAllPostByUser(Long id, Pageable pageable) {
+        return postRepository.findAllPostByUser(id, pageable);
     }
 
     @Override
-    @Cacheable(cacheNames = "allPost", key = "#id")
-    public List<Post2> allPost(Long id) {
-        return postRepository.AllPost(id);
+    public Page<Post2> allPost(Long id, Pageable pageable) {
+        return postRepository.AllPost(id, pageable);
     }
 
     @Override
@@ -201,6 +178,50 @@ public class PostServiceImpl implements PostService {
         Optional<Post2> post2Optional = findById(idPost);
         if (post2Optional.isEmpty()) throw new InvalidException(MessageResponse.NOT_FOUND_POST + idPost);
         return post2Optional.get();
+    }
+
+    @Override
+    public Page<PostDTO> allPostPublic(Long idUser, String type, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Post2> post2Page = allPost(idUser, pageable);
+        List<PostDTO> postDTOList;
+        Page<PostDTO> pagePostDTO = null;
+        if (CollectionUtils.isEmpty(post2Page.getContent())) {
+            return new PageImpl<>(List.of(), pageable, 0);
+        }
+        if (type.equals("detailUser")) {
+            Page<Post2> post2PageDetailUser = findAllPostByUser(idUser, pageable);
+            postDTOList = filterListPost(post2PageDetailUser.getContent());
+            pagePostDTO = new PageImpl<>(postDTOList,
+                    post2PageDetailUser.getPageable(),
+                    post2PageDetailUser.getTotalElements()
+            );
+            return pagePostDTO;
+        }
+        if (type.equals("getAll")) {
+            postDTOList = filterListPost(post2Page.getContent());
+            pagePostDTO = new PageImpl<>(postDTOList,
+                    post2Page.getPageable(),
+                    post2Page.getTotalElements()
+            );
+            return pagePostDTO;
+        }
+        if (type.equals("getAllByUser")) {
+            postDTOList = filterListPost(post2Page.getContent());
+            List<HidePost> hidePosts = hidePostRepository.findAllByIdUser(idUser);
+            if (!CollectionUtils.isEmpty(hidePosts)) {
+                List<Long> listIdPost = hidePosts.stream().map(HidePost::getIdPost).toList();
+                for (Long id : listIdPost) {
+                    postDTOList.stream().filter(item -> item.getId().equals(id)).findFirst()
+                            .ifPresent(post2 -> post2.setContent(null));
+                }
+            }
+            pagePostDTO = new PageImpl<>(postDTOList,
+                    post2Page.getPageable(),
+                    post2Page.getTotalElements()
+            );
+        }
+        return pagePostDTO;
     }
 
 //    public List<Post2> getListLCReFile(String lcRef, String requestCode, Integer productType) {

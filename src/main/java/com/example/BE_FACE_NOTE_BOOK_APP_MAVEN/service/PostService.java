@@ -3,6 +3,8 @@ package com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.dto.PostDTO;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.Comment;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.Post2;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
@@ -11,9 +13,9 @@ public interface PostService extends GeneralService<Post2> {
 
     Iterable<Post2> findAll();
 
-    List<Post2> findAllPostByUser(@Param("id") Long id);
+    Page<Post2> findAllPostByUser(@Param("id") Long id, Pageable pageable);
 
-    List<Post2> allPost(Long id);
+    Page<Post2> allPost(Long id, Pageable pageable);
 
     void delete(Post2 entity);
 
@@ -32,4 +34,6 @@ public interface PostService extends GeneralService<Post2> {
     void deleteRelateOfComment(List<Comment> comments);
 
     Post2 checkExistPost(Long idPost);
+
+    Page<PostDTO> allPostPublic(Long idUser, String type, int page, int size);
 }

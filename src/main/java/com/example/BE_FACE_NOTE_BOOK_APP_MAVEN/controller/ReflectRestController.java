@@ -4,9 +4,9 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.common.Constants;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.*;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +26,7 @@ import java.util.Optional;
 @CrossOrigin("*")
 @RequestMapping("/api/refs")
 @Slf4j
+@RequiredArgsConstructor
 public class ReflectRestController {
 
     private final LikePostService likePostService;
@@ -45,27 +46,6 @@ public class ReflectRestController {
     private final CommentService commentService;
 
     private final NotificationService notificationService;
-
-    @Autowired
-    public ReflectRestController(LikePostService likePostService,
-                                 DisLikePostService disLikePostService,
-                                 UserService userService,
-                                 PostService postService,
-                                 LikeCommentService likeCommentService,
-                                 DisLikeCommentService disLikeCommentService,
-                                 IconHeartService iconHeartService,
-                                 CommentService commentService,
-                                 NotificationService notificationService) {
-        this.likePostService = likePostService;
-        this.disLikePostService = disLikePostService;
-        this.userService = userService;
-        this.postService = postService;
-        this.likeCommentService = likeCommentService;
-        this.disLikeCommentService = disLikeCommentService;
-        this.iconHeartService = iconHeartService;
-        this.commentService = commentService;
-        this.notificationService = notificationService;
-    }
 
     @GetMapping("/getAllLike")
     public ResponseEntity<Object> getAllLike(@RequestParam Long idPost) {

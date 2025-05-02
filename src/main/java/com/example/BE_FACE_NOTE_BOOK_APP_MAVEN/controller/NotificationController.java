@@ -5,10 +5,9 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.dto.NotificationDTO;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.dto.UserNotificationDTO;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.Notification;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.NotificationService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,18 +22,12 @@ import java.util.List;
 @CrossOrigin("*")
 @RequestMapping("/api/notifications")
 @Slf4j
+@RequiredArgsConstructor
 public class NotificationController {
 
     private final NotificationService notificationService;
 
     private final ModelMapper modelMapper;
-
-    @Autowired
-    public NotificationController(NotificationService notificationService,
-                                  ModelMapper modelMapper) {
-        this.notificationService = notificationService;
-        this.modelMapper = modelMapper;
-    }
 
     @GetMapping("/getAllNotificationByIdSenTo")
     public ResponseEntity<Object> getAllNotificationByIdSenTo(@RequestParam Long idSenTo) {

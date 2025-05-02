@@ -7,9 +7,9 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.User;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.LifeEventsService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,18 +26,12 @@ import java.util.Optional;
 @CrossOrigin("*")
 @RequestMapping("/api/events")
 @Slf4j
+@RequiredArgsConstructor
 public class LifeEventsRestController {
 
     private final LifeEventsService lifeEventsService;
 
     private final UserService userService;
-
-    @Autowired
-    public LifeEventsRestController(LifeEventsService lifeEventsService,
-                                    UserService userService) {
-        this.lifeEventsService = lifeEventsService;
-        this.userService = userService;
-    }
 
     @GetMapping("/getOne")
     public ResponseEntity<Object> getOne(@RequestParam Long idUser, @RequestParam Long idEvent) {

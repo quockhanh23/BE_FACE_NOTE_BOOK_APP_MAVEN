@@ -17,11 +17,11 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.UserRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.VerificationTokenRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.FriendRelationService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -52,23 +53,6 @@ public class UserServiceImpl implements UserService {
     private final VerificationTokenRepository verificationTokenRepository;
 
     private final LastUserLoginRepository lastUserLoginRepository;
-
-    @Autowired
-    public UserServiceImpl(UserRepository userRepository,
-                           FollowWatchingRepository followWatchingRepository,
-                           ModelMapper modelMapper,
-                           FriendRelationService friendRelationService,
-                           JWTService jwtService,
-                           VerificationTokenRepository verificationTokenRepository,
-                           LastUserLoginRepository lastUserLoginRepository) {
-        this.userRepository = userRepository;
-        this.followWatchingRepository = followWatchingRepository;
-        this.modelMapper = modelMapper;
-        this.friendRelationService = friendRelationService;
-        this.jwtService = jwtService;
-        this.verificationTokenRepository = verificationTokenRepository;
-        this.lastUserLoginRepository = lastUserLoginRepository;
-    }
 
     @Override
     @Transactional

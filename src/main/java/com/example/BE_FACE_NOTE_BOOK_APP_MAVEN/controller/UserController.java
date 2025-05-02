@@ -19,12 +19,12 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.ImageService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.RoleService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +48,7 @@ import java.util.*;
 @CrossOrigin("*")
 @RequestMapping("/api")
 @Slf4j
+@RequiredArgsConstructor
 public class UserController {
 
     private final AuthenticationManager authenticationManager;
@@ -66,32 +67,7 @@ public class UserController {
 
     private final ImageService imageService;
 
-    private final EmailService emailService;
-
     private final HttpServletRequest request;
-
-    @Autowired
-    public UserController(AuthenticationManager authenticationManager,
-                          VerificationTokenRepository verificationTokenRepository,
-                          JWTService jwtService,
-                          UserService userService,
-                          RoleService roleService,
-                          PasswordEncoder passwordEncoder,
-                          ModelMapper modelMapper,
-                          ImageService imageService,
-                          EmailService emailService,
-                          HttpServletRequest request) {
-        this.authenticationManager = authenticationManager;
-        this.verificationTokenRepository = verificationTokenRepository;
-        this.jwtService = jwtService;
-        this.userService = userService;
-        this.roleService = roleService;
-        this.passwordEncoder = passwordEncoder;
-        this.modelMapper = modelMapper;
-        this.imageService = imageService;
-        this.emailService = emailService;
-        this.request = request;
-    }
 
     @GetMapping("/saveHistoryLogin")
     public ResponseEntity<Object> saveHistoryLogin(@RequestParam Long idUserLogin) {
@@ -228,12 +204,12 @@ public class UserController {
                     HttpStatus.UNAUTHORIZED);
         }
         try {
-            String newPassword = RandomStringUtils.randomAscii(6);
-            userOptional.get().setPassword(passwordEncoder.encode(newPassword));
-            userService.save(userOptional.get());
-            emailService.sendMail(userOptional.get().getEmail(),
-                    MessageResponse.Email.RESET_PASSWORD + MessageResponse.Email.SPACE + MessageResponse.Email.APP,
-                    MessageResponse.Email.NEW_PASSWORD + newPassword);
+//            String newPassword = RandomStringUtils.randomAscii(6);
+//            userOptional.get().setPassword(passwordEncoder.encode(newPassword));
+//            userService.save(userOptional.get());
+//            emailService.sendMail(userOptional.get().getEmail(),
+//                    MessageResponse.Email.RESET_PASSWORD + MessageResponse.Email.SPACE + MessageResponse.Email.APP,
+//                    MessageResponse.Email.NEW_PASSWORD + newPassword);
         } catch (Exception e) {
             return new ResponseEntity<>(new ResponseNotification(HttpStatus.OK.toString(),
                     e.getMessage()), HttpStatus.OK);

@@ -10,18 +10,18 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.*;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.*;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 @CrossOrigin("*")
 @RequestMapping("/api/posts")
 @Slf4j
+@RequiredArgsConstructor
 public class PostRestController {
 
     private final PostService postService;
@@ -59,40 +60,13 @@ public class PostRestController {
 
     private final PostRepository postRepository;
 
-    @Autowired
-    public PostRestController(PostService postService,
-                              UserService userService,
-                              LikePostService likePostService,
-                              DisLikePostService disLikePostService,
-                              IconHeartService iconHeartService,
-                              ModelMapper modelMapper,
-                              ImageService imageService,
-                              HidePostRepository hidePostRepository,
-                              CommentRepository commentRepository,
-                              LikePostRepository likePostRepository,
-                              DisLikePostRepository disLikePostRepository,
-                              IconHeartRepository iconHeartRepository,
-                              PostRepository postRepository) {
-        this.postService = postService;
-        this.userService = userService;
-        this.likePostService = likePostService;
-        this.disLikePostService = disLikePostService;
-        this.iconHeartService = iconHeartService;
-        this.modelMapper = modelMapper;
-        this.imageService = imageService;
-        this.hidePostRepository = hidePostRepository;
-        this.commentRepository = commentRepository;
-        this.likePostRepository = likePostRepository;
-        this.disLikePostRepository = disLikePostRepository;
-        this.iconHeartRepository = iconHeartRepository;
-        this.postRepository = postRepository;
-    }
-
     @GetMapping("/allPostPublic")
     public ResponseEntity<Object> allPostPublic(@RequestParam Long idUser,
                                                 @RequestParam String type,
                                                 @RequestParam(required = false) Long idUserVisit,
-                                                @RequestHeader("Authorization") String authorization) {
+                                                @RequestHeader("Authorization") String authorization,
+                                                @RequestParam(defaultValue = "0", required = false) int page,
+                                                @RequestParam(defaultValue = "10", required = false) int size) {
         try {
             boolean check;
             if (idUserVisit != null) {
@@ -105,34 +79,12 @@ public class PostRestController {
                         Constants.TOKEN, Constants.TOKEN + " " + MessageResponse.IN_VALID.toLowerCase()),
                         HttpStatus.UNAUTHORIZED);
             }
-            List<Post2> post2List = postService.allPost(idUser);
-            if (!CollectionUtils.isEmpty(post2List)) {
-                if (type.equals("detailUser")) {
-                    post2List = postService.findAllPostByUser(idUser);
-                    List<PostDTO> postDTOList = postService.filterListPost(post2List);
-                    return new ResponseEntity<>(postDTOList, HttpStatus.OK);
-                }
-                if (type.equals("getAll")) {
-                    List<PostDTO> postDTOList = postService.filterListPost(post2List);
-                    return new ResponseEntity<>(postDTOList, HttpStatus.OK);
-                }
-                if (type.equals("getAllByUser")) {
-                    List<PostDTO> postDTOList = postService.filterListPost(post2List);
-                    List<HidePost> hidePosts = hidePostRepository.findAllByIdUser(idUser);
-                    if (!CollectionUtils.isEmpty(hidePosts)) {
-                        List<Long> listIdPost = hidePosts.stream().map(HidePost::getIdPost).toList();
-                        for (Long id : listIdPost) {
-                            postDTOList.stream().filter(item -> item.getId().equals(id)).findFirst()
-                                    .ifPresent(post2 -> post2.setContent(null));
-                        }
-                    }
-                    return new ResponseEntity<>(postDTOList, HttpStatus.OK);
-                }
-            }
+            Page<PostDTO> postDTOPage = postService.allPostPublic(idUser, type, page, size);
+            return new ResponseEntity<>(postDTOPage, HttpStatus.OK);
         } catch (Exception e) {
             e.printStackTrace();
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
     }
 
     @DeleteMapping("/hidePost")
@@ -191,20 +143,19 @@ public class PostRestController {
     }
 
     @PutMapping("/updatePost")
-    @Transactional()
     public ResponseEntity<Object> updatePost(@RequestParam Long idPost, @RequestParam Long idUser,
                                              @RequestBody Post2 post,
                                              @SuppressWarnings("unused")
                                              @RequestHeader("Authorization") String authorization) {
-        Post2 postOptional = postService.checkExistPost(idPost);
+        Post2 post2 = postService.checkExistPost(idPost);
         User user = userService.checkExistUser(idUser);
         Common.handlerWordsLanguage(post);
-        if (postOptional.getUser().getId().equals(user.getId())) {
-            postOptional.setEditAt(new Date());
-            if (StringUtils.isNotEmpty(post.getContent()) && post.getContent().trim().equals(Constants.BLANK)) {
-                postOptional.setContent(post.getContent());
+        if (post2.getUser().getId().equals(user.getId())) {
+            post2.setEditAt(new Date());
+            if (StringUtils.isNotEmpty(post.getContent()) && !post.getContent().trim().equals(Constants.BLANK)) {
+                post2.setContent(post.getContent());
+                postService.save(post2);
             }
-            postService.save(postOptional);
             return new ResponseEntity<>(HttpStatus.OK);
         }
         return new ResponseEntity<>(new ResponseNotification(HttpStatus.BAD_REQUEST.toString(),

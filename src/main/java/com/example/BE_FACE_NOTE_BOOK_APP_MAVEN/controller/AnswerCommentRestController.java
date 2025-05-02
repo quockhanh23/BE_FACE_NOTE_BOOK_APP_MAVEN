@@ -13,10 +13,10 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.AnswerCommentService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.CommentService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.NotificationService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +33,7 @@ import java.util.Optional;
 @CrossOrigin("*")
 @RequestMapping("/api/answerComments")
 @Slf4j
+@RequiredArgsConstructor
 public class AnswerCommentRestController {
 
     private final UserService userService;
@@ -44,19 +45,6 @@ public class AnswerCommentRestController {
     private final NotificationService notificationService;
 
     private final ModelMapper modelMapper;
-
-    @Autowired
-    public AnswerCommentRestController(UserService userService,
-                                       CommentService commentService,
-                                       AnswerCommentService answerCommentService,
-                                       NotificationService notificationService,
-                                       ModelMapper modelMapper) {
-        this.userService = userService;
-        this.commentService = commentService;
-        this.answerCommentService = answerCommentService;
-        this.notificationService = notificationService;
-        this.modelMapper = modelMapper;
-    }
 
     @GetMapping("/allAnswerComment")
     public ResponseEntity<Object> allAnswerComment() {

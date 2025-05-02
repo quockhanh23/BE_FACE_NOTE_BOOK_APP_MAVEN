@@ -7,9 +7,9 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.*;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.GroupParticipantRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
 @CrossOrigin("*")
 @RequestMapping("/api/groups")
 @Slf4j
+@RequiredArgsConstructor
 public class GroupRestController {
 
     private final GroupParticipantService groupParticipantService;
@@ -42,23 +43,6 @@ public class GroupRestController {
     private final NotificationService notificationService;
 
     private final GroupParticipantRepository groupParticipantRepository;
-
-    @Autowired
-    public GroupRestController(GroupParticipantService groupParticipantService,
-                               TheGroupService theGroupService,
-                               GroupPostService groupPostService,
-                               UserService userService,
-                               ImageGroupService imageGroupService,
-                               NotificationService notificationService,
-                               GroupParticipantRepository groupParticipantRepository) {
-        this.groupParticipantService = groupParticipantService;
-        this.theGroupService = theGroupService;
-        this.groupPostService = groupPostService;
-        this.userService = userService;
-        this.imageGroupService = imageGroupService;
-        this.notificationService = notificationService;
-        this.groupParticipantRepository = groupParticipantRepository;
-    }
 
     // Danh sách nhóm đã vào
     @GetMapping("/groupJoined")

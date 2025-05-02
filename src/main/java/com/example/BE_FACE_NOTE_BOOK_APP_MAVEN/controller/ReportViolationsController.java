@@ -10,8 +10,8 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.ReportRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.PostService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.TheGroupService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +27,7 @@ import java.util.Optional;
 @CrossOrigin("*")
 @RequestMapping("/api/reposts")
 @Slf4j
+@RequiredArgsConstructor
 public class ReportViolationsController {
 
     private final UserService userService;
@@ -36,17 +37,6 @@ public class ReportViolationsController {
     private final TheGroupService theGroupService;
 
     private final ReportRepository reportRepository;
-
-    @Autowired
-    public ReportViolationsController(UserService userService,
-                                      PostService postService,
-                                      TheGroupService theGroupService,
-                                      ReportRepository reportRepository) {
-        this.userService = userService;
-        this.postService = postService;
-        this.theGroupService = theGroupService;
-        this.reportRepository = reportRepository;
-    }
 
     @PostMapping("/createRepost")
     public ResponseEntity<Object> createRepost(@RequestBody ReportViolations report,

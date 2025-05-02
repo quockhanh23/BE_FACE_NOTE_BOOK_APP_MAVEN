@@ -11,10 +11,10 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.ShortNewsRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.ShortNewsService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +31,7 @@ import java.util.Optional;
 @CrossOrigin("*")
 @RequestMapping("/api/news")
 @Slf4j
+@RequiredArgsConstructor
 public class ShortNewsRestController {
 
     private final ShortNewsService shortNewsService;
@@ -40,17 +41,6 @@ public class ShortNewsRestController {
     private final ModelMapper modelMapper;
 
     private final ShortNewsRepository shortNewsRepository;
-
-    @Autowired
-    public ShortNewsRestController(ShortNewsService shortNewsService,
-                                   UserService userService,
-                                   ModelMapper modelMapper,
-                                   ShortNewsRepository shortNewsRepository) {
-        this.shortNewsService = shortNewsService;
-        this.userService = userService;
-        this.modelMapper = modelMapper;
-        this.shortNewsRepository = shortNewsRepository;
-    }
 
     // 4 tin mới nhất
     @GetMapping("/shortNewsLimit")
@@ -99,7 +89,7 @@ public class ShortNewsRestController {
     // Tạo tin
     @PostMapping("/createShortNews")
     public ResponseEntity<Object> createShortNews(@RequestBody ShortNews shortNews,
-                                             @RequestParam Long idUser) {
+                                                  @RequestParam Long idUser) {
         if (StringUtils.isEmpty(shortNews.getContent())) {
             return new ResponseEntity<>(ResponseNotification.responseMessageDataField(Constants.DataField.CONTENT),
                     HttpStatus.BAD_REQUEST);
@@ -114,8 +104,8 @@ public class ShortNewsRestController {
     // Chuyển vào thùng rác, Xóa tin trong database
     @DeleteMapping("/deleteShortNews")
     public ResponseEntity<Object> deleteShortNews(@RequestParam Long idSortNew,
-                                             @RequestParam Long idUser,
-                                             @RequestParam String type) {
+                                                  @RequestParam Long idUser,
+                                                  @RequestParam String type) {
         User user = userService.checkExistUser(idUser);
         Optional<ShortNews> shortNewsOptional = shortNewsService.findById(idSortNew);
         if (shortNewsOptional.isEmpty()) {
@@ -144,9 +134,9 @@ public class ShortNewsRestController {
     // Xóa tất cả, khôi phục tất cả
     @DeleteMapping("/actionShortNews")
     public ResponseEntity<Object> actionShortNews(@RequestParam List<Long> listIdSortNew,
-                                             @RequestParam Long idUser,
-                                             @RequestParam String type,
-                                             @RequestHeader("Authorization") String authorization) {
+                                                  @RequestParam Long idUser,
+                                                  @RequestParam String type,
+                                                  @RequestHeader("Authorization") String authorization) {
         userService.checkExistUser(idUser);
         boolean check = userService.errorToken(authorization, idUser);
         if (!check) {

@@ -8,8 +8,8 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.ImageRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.ImageService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +26,7 @@ import java.util.Optional;
 @CrossOrigin("*")
 @RequestMapping("/api/images")
 @Slf4j
+@RequiredArgsConstructor
 public class ImageRestController {
 
     private final ImageService imageService;
@@ -33,15 +34,6 @@ public class ImageRestController {
     private final UserService userService;
 
     private final ImageRepository imageRepository;
-
-    @Autowired
-    public ImageRestController(ImageService imageService,
-                               UserService userService,
-                               ImageRepository imageRepository) {
-        this.imageService = imageService;
-        this.userService = userService;
-        this.imageRepository = imageRepository;
-    }
 
     @GetMapping("/findAllImages")
     public ResponseEntity<Object> findAllImages(@RequestParam Long idUser,

@@ -7,9 +7,9 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.model.User;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.notification.ResponseNotification;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.BlackListService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,18 +27,12 @@ import java.util.stream.Collectors;
 @CrossOrigin("*")
 @RequestMapping("/api/blackLists")
 @Slf4j
+@RequiredArgsConstructor
 public class BlackListController {
 
     private final BlackListService blackListService;
 
     private final UserService userService;
-
-    @Autowired
-    public BlackListController(BlackListService blackListService,
-                               UserService userService) {
-        this.blackListService = blackListService;
-        this.userService = userService;
-    }
 
     @GetMapping("/listBlockedByUser")
     public ResponseEntity<Object> listBlockedByUser(@RequestParam Long idUserLogin) {

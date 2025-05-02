@@ -13,9 +13,9 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.ReportRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.TheGroupRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.PostService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +31,7 @@ import java.util.Optional;
 @CrossOrigin("*")
 @RequestMapping("/api/admins")
 @Slf4j
+@RequiredArgsConstructor
 public class AdminRestController {
 
     private final UserService userService;
@@ -42,18 +43,6 @@ public class AdminRestController {
     private final GroupPostRepository groupPostRepository;
 
     private final ReportRepository reportRepository;
-
-    @Autowired
-    public AdminRestController(UserService userService, PostService postService,
-                               TheGroupRepository theGroupRepository,
-                               GroupPostRepository groupPostRepository,
-                               ReportRepository reportRepository) {
-        this.userService = userService;
-        this.postService = postService;
-        this.theGroupRepository = theGroupRepository;
-        this.groupPostRepository = groupPostRepository;
-        this.reportRepository = reportRepository;
-    }
 
     @GetMapping("/adminAction")
     public ResponseEntity<Object> adminAction(@RequestParam Long idAdmin,

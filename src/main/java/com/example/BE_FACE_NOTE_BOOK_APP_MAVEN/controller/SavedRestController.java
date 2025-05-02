@@ -11,8 +11,8 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.repository.SavedRepository;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.GroupPostService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.PostService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +29,7 @@ import java.util.Optional;
 @CrossOrigin("*")
 @RequestMapping("/api/saves")
 @Slf4j
+@RequiredArgsConstructor
 public class SavedRestController {
 
     private final SavedRepository savedRepository;
@@ -38,17 +39,6 @@ public class SavedRestController {
     private final UserService userService;
 
     private final PostService postService;
-
-    @Autowired
-    public SavedRestController(SavedRepository savedRepository,
-                               GroupPostService groupPostService,
-                               UserService userService,
-                               PostService postService) {
-        this.savedRepository = savedRepository;
-        this.groupPostService = groupPostService;
-        this.userService = userService;
-        this.postService = postService;
-    }
 
     // Danh sách đã lưu
     @GetMapping("/listSavedPost")

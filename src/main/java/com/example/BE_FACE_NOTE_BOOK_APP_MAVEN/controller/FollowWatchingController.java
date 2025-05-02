@@ -4,8 +4,8 @@ import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.common.Constants;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.dto.UserDTO;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.FollowWatchingService;
 import com.example.BE_FACE_NOTE_BOOK_APP_MAVEN.service.UserService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,18 +19,12 @@ import java.util.Objects;
 @CrossOrigin("*")
 @RequestMapping("/api/follows")
 @Slf4j
+@RequiredArgsConstructor
 public class FollowWatchingController {
 
     private final UserService userService;
 
     private final FollowWatchingService followWatchingService;
-
-    @Autowired
-    public FollowWatchingController(UserService userService,
-                                    FollowWatchingService followWatchingService) {
-        this.userService = userService;
-        this.followWatchingService = followWatchingService;
-    }
 
     @GetMapping("/getListFollowByIdUser")
     public ResponseEntity<Object> getListFollowByIdUser(@RequestParam Long idUser) {
