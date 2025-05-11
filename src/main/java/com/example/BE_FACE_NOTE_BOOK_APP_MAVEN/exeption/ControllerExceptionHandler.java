@@ -47,7 +47,7 @@ public class ControllerExceptionHandler {
     }
 
     @ExceptionHandler(TokenInvalidException.class)
-    public ResponseEntity<ErrorMessage> handleTokenInValidException(Exception exception, WebRequest request) {
+    public ResponseEntity<ErrorMessage> handleTokenInValidException(TokenInvalidException exception, WebRequest request) {
         ErrorMessage message = new ErrorMessage();
         message.setStatusCode(HttpStatus.UNAUTHORIZED.value());
         message.setMessage(exception.getMessage());
